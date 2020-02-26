@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - Pick Up
+  - Camera
+  - Button
+  - Climbable
+  - Searchable
+  - Openable
+  - Destroyed
+  - Equipped
+  - Enemy
+  - Other Player
+  - 9mm Ammo
+  - Chat Button
+  - Chat Content
+  - TargetCanvas
+  - TouchPad
+  - Chat Canvas
+  - HitMarker
+  - Game Manager
+  - NPC
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - 
+  - 
+  - Network Manager
+  - Terrain
+  - Decorations
+  - MiniMap
+  - Map
+  - Player
+  - Item
+  - Enemy
+  - NPC
+  - Other Player
+  - Tree
+  - Your Own Projectiles
+  - Item Trigger
+  - Enemy Radius
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Particles
+    uniqueID: 231051945
+    locked: 0
+  - name: UI
+    uniqueID: 3661329639
+    locked: 0

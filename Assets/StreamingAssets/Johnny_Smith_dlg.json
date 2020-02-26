@@ -1,0 +1,283 @@
+{
+    "wrappedNodes": [
+        {
+            "id": 0,
+            "who": "",
+            "text": "Johnny Smith",
+            "options": [
+                {
+                    "text": "Talk",
+                    "destinationId": 2
+                },
+                {
+                    "text": "Trade",
+                    "destinationId": 13
+                },
+                {
+                    "text": "Exit",
+                    "destinationId": -1
+                }
+            ]
+        },
+        {
+            "id": 1,
+            "who": "Johnny Smith",
+            "text": "I don't have anything to trade at the moment.",
+            "options": [
+                {
+                    "text": "Exit",
+                    "destinationId": -1
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "who": "Johnny Smith",
+            "text": "Hey stranger. What can I do for you?",
+            "options": [
+                {
+                    "text": "Do you have a quest for me?",
+                    "destinationId": 3
+                },
+                {
+                    "text": "Nothing.",
+                    "destinationId": -1
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "who": "Johnny Smith",
+            "text": "I sure do. One of the animals around here seem to have...",
+            "options": [
+                {
+                    "text": "...",
+                    "destinationId": 11
+                }
+            ]
+        },
+        {
+            "id": 11,
+            "who": "Johnny Smith",
+            "text": "...swiped my hammer when I wasn't looking.",
+            "options": [
+                {
+                    "text": "...",
+                    "destinationId": 16
+                }
+            ]
+        },
+        {
+            "id": 16,
+            "who": "Johnny Smith",
+            "text": "No doubt sent by the Chicken King.",
+            "options": [
+                {
+                    "text": "Uh, did you say Chicken King?",
+                    "destinationId": 17
+                }
+            ]
+        },
+        {
+            "id": 17,
+            "who": "Johnny Smith",
+            "text": "Yes, the Chicken King is definitely behind this.",
+            "options": [
+                {
+                    "text": "I see.",
+                    "destinationId": 18
+                }
+            ]
+        },
+        {
+            "id": 18,
+            "who": "Johnny Smith",
+            "text": "I really need that hammer. If you can find it...",
+            "options": [
+                {
+                    "text": "...",
+                    "destinationId": 8
+                }
+            ]
+        },
+        {
+            "id": 8,
+            "who": "Johnny Smith",
+            "text": "...I'll make it worth your while.",
+            "options": [
+                {
+                    "text": "Sure, I'd love to help.",
+                    "destinationId": 10,
+
+                    "triggers": [
+                        {"triggerType": "QuestStart", "actionId": 0, "secondaryActionId": 5}, 
+                        {"triggerType": "ChangeEntryNode", "actionId": 4},
+                        {"triggerType": "SetNodeDestinationId", "actionId": 0, "secondaryActionId": 4, "thirdActionId": 0}
+                    ]
+                },
+                {
+                    "text": "Not right now.",
+                    "destinationId": -1
+                }
+            ]
+        },
+        {
+            "id": 10,
+            "who": "Johnny Smith",
+            "text": "You will!? Boy that would be a big help.",
+            "options": [
+                {
+                    "text": "Alrighty, I'll be back.",
+                    "destinationId": -1
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "who": "Johnny Smith",
+            "text": "Any luck finding that hammer?",
+            "options": [
+                {
+                    "text": "Where's the Chicken King?",
+                    "destinationId": 19
+                },
+                {
+                    "text": "I want to talk about something else.",
+                    "destinationId": 0
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "who": "Johnny Smith",
+            "text": "Is that...my hammer!?",
+            "options": [
+                {
+                    "text": "Yes sir. Here you go.",
+                    "destinationId": 6,
+                    "triggers": [
+                        {"triggerType": "QuestComplete", "actionId": 0},
+                        {"triggerType": "TakeItem", "actionId": 0},
+                        {"triggerType": "ChangeEntryNode", "actionId": 6},
+                        {"triggerType": "SetNodeDestinationId", "actionId": 0, "secondaryActionId": 6, "thirdActionId": 0}
+                    ]
+                },
+                {
+                    "text": "No. This hammer is mine and you can't have it.",
+                    "destinationId": -1
+                }
+            ]
+        },
+        {
+            "id": 6,
+            "who": "Johnny Smith",
+            "text": "Thanks! Here's that reward I promised.",
+            "options": [
+                {
+                    "text": "...",
+                    "destinationId": 9,
+                    "triggers": [
+                        {"triggerType": "GiveItem", "actionId": 0},
+                        {"triggerType": "ChangeEntryNode", "actionId": 7},
+                        {"triggerType": "SetNodeDestinationId", "actionId": 0, "secondaryActionId": 7, "thirdActionId": 0}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 9,
+            "who": "Johnny Smith",
+            "text": "Don't put your eye out. ;)",
+            "options": [
+                {
+                    "text": "Wow, thanks!",
+                    "destinationId": -1
+                }
+            ]
+        },
+        {
+            "id": 7,
+            "who": "Johnny Smith",
+            "text": "Thanks again for finding my hammer! ...",
+            "options": [
+                {
+                    "text": "...",
+                    "destinationId": 12
+                }
+            ]
+        },
+        {
+            "id": 12,
+            "who": "Johnny Smith",
+            "text": "Now I can get back to work.",
+            "options": [
+                {
+                    "text": "No problem!",
+                    "destinationId": -1
+                },
+                {
+                    "text": "I'd like to talk about something else.",
+                    "destinationId": 0
+                }
+            ]
+        },
+        {
+            "id": 13,
+            "who": "Johnny Smith",
+            "text": "I have some old bow parts you can have...",
+            "options": [
+                {
+                    "text": "Sure, I'll take them off your hands.",
+                    "destinationId": 14
+                },
+                {
+                    "text": "I'm good thanks.",
+                    "destinationId": -1
+                }
+            ]
+        },
+        {
+            "id": 14,
+            "who": "Johnny Smith",
+            "text": "That will be 50 gold.",
+            "options": [
+                {
+                    "text": "Sounds Reasonable. Here you go.",
+                    "destinationId": 15,
+                    "triggers": [
+                        {"triggerType": "QuestComplete", "actionId": 1},
+                        {"triggerType": "TakeMoney", "actionId": 1},
+                        {"triggerType": "GiveItem", "actionId": 1},
+                        {"triggerType": "SetNodeDestinationId", "actionId": 0, "secondaryActionId": 1, "thirdActionId": 1}
+                    ]
+                },
+                {
+                    "text": "Ugh",
+                    "destinationId": -1
+                }
+            ]
+        },
+        {
+            "id": 15,
+            "who": "Johnny Smith",
+            "text": "There you are. Pleasure doing business with you.",
+            "options": [
+                {
+                    "text": "Thanks.",
+                    "destinationId": -1
+                }
+            ]
+        },
+        {
+            "id": 19,
+            "who": "Johnny Smith",
+            "text": "Check on the island to the west.",
+            "options": [
+                {
+                    "text": "Okay.",
+                    "destinationId": -1
+                }
+            ]
+        }
+    ]
+}

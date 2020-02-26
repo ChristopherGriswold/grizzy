@@ -1,0 +1,12 @@
+PUN 2 Change Log
+
+
+v2.00.1  (4th September 2018)
+Updated: Asteroids Demo. Fixed room listing, player listing, the ready-button and the countdown for ship instantiation.
+Added: A "teleport" setting to the PhotonRigidbody2DView and PhotonRigidbodyView. With this, you can implement teleporting as done in the Asteroids Demo.
+Changed: When the PhotonServerSettings point to a Master Server, ConnectUsingSettings() will re-set the serialization protocol (SerializationProtocolType) to be compatible with the Photon Server SDK.
+
+
+v2.00  (7th August 2018)
+Updated: PUN! Cleaned up naming, callbacks, APIs and demos.
+Note: We are redoing the docs online: https://doc.photonengine.com/en-us/pun/v2

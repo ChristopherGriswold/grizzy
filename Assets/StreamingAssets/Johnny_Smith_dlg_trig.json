@@ -1,0 +1,46 @@
+{
+    "wrappedTriggers": [
+        {
+            "isActive": true,
+            "conditionMet": true,
+            "name": "Accept apple quest",
+            "nodeOptionId": {
+                "x": 10.0,
+                "y": 0.0
+            },
+            "offNode": 2,
+            "onNode": 10,
+            "newEntryId": 4,
+            "startsQuestId": 0,
+            "completesQuestId": -1
+        },
+        {
+            "isActive": true,
+            "conditionMet": false,
+            "name": "Apple quest conditions met",
+            "nodeOptionId": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "offNode": 8,
+            "onNode": 5,
+            "newEntryId": 5,
+            "startsQuestId": -1,
+            "completesQuestId": -1
+        },
+        {
+            "isActive": true,
+            "conditionMet": true,
+            "name": "Apple quest completed",
+            "nodeOptionId": {
+                "x": 5.0,
+                "y": 0.0
+            },
+            "offNode": 5,
+            "onNode": 7,
+            "newEntryId": 7,
+            "startsQuestId": -1,
+            "completesQuestId": 0
+        }
+    ]
+}

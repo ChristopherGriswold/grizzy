@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<ArrayOfDialogueTrigger xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DialogueTrigger>
+    <isActive>true</isActive>
+    <conditionMet>true</conditionMet>
+    <name>Accept apple quest</name>
+    <nodeOptionId>
+      <x>3</x>
+      <y>0</y>
+    </nodeOptionId>
+    <offNode>3</offNode>
+    <onNode>4</onNode>
+    <newEntryId>4</newEntryId>
+    <startsQuestId>0</startsQuestId>
+    <completesQuestId>-1</completesQuestId>
+  </DialogueTrigger>
+  <DialogueTrigger>
+    <isActive>true</isActive>
+    <conditionMet>false</conditionMet>
+    <name>Apple quest conditions met</name>
+    <nodeOptionId>
+      <x>0</x>
+      <y>0</y>
+    </nodeOptionId>
+    <offNode>4</offNode>
+    <onNode>5</onNode>
+    <newEntryId>5</newEntryId>
+    <startsQuestId>-1</startsQuestId>
+    <completesQuestId>-1</completesQuestId>
+  </DialogueTrigger>
+  <DialogueTrigger>
+    <isActive>true</isActive>
+    <conditionMet>true</conditionMet>
+    <name>Apple quest completed</name>
+    <nodeOptionId>
+      <x>5</x>
+      <y>0</y>
+    </nodeOptionId>
+    <offNode>5</offNode>
+    <onNode>7</onNode>
+    <newEntryId>7</newEntryId>
+    <startsQuestId>-1</startsQuestId>
+    <completesQuestId>0</completesQuestId>
+  </DialogueTrigger>
+</ArrayOfDialogueTrigger>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<ArrayOfNode xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Node>
+    <isAccessible>true</isAccessible>
+    <id>0</id>
+    <who />
+    <text>Johnny Smith</text>
+    <options>
+      <Option>
+        <text>Talk</text>
+        <destinationId>2</destinationId>
+      </Option>
+      <Option>
+        <text>Trade</text>
+        <destinationId>1</destinationId>
+      </Option>
+      <Option>
+        <text>Exit</text>
+        <destinationId>-1</destinationId>
+      </Option>
+    </options>
+  </Node>
+  <Node>
+    <isAccessible>true</isAccessible>
+    <id>1</id>
+    <who>Johnny Smith</who>
+    <text>I don't have anything to trade at the moment.</text>
+    <options>
+      <Option>
+        <text>Exit</text>
+        <destinationId>-1</destinationId>
+      </Option>
+    </options>
+  </Node>
+  <Node>
+    <isAccessible>true</isAccessible>
+    <id>2</id>
+    <who>Johnny Smith</who>
+    <text>Hey stranger. What can I do for you?</text>
+    <options>
+      <Option>
+        <text>Do you have a quest for me?</text>
+        <destinationId>3</destinationId>
+      </Option>
+      <Option>
+        <text>Nothing.</text>
+        <destinationId>-1</destinationId>
+      </Option>
+    </options>
+  </Node>
+  <Node>
+    <isAccessible>true</isAccessible>
+    <id>3</id>
+    <who>Johnny Smith</who>
+    <text>I sure do. Can you bring me an apple?</text>
+    <options>
+      <Option>
+        <text>Yes. Brb.</text>
+        <destinationId>-1</destinationId>
+      </Option>
+      <Option>
+        <text>Not right now.</text>
+        <destinationId>-1</destinationId>
+      </Option>
+    </options>
+  </Node>
+  <Node>
+    <isAccessible>true</isAccessible>
+    <id>4</id>
+    <who>Johnny Smith</who>
+    <text>Do you have that apple?</text>
+    <options>
+      <Option>
+        <text>No I'm still looking.</text>
+        <destinationId>-1</destinationId>
+      </Option>
+    </options>
+  </Node>
+  <Node>
+    <isAccessible>true</isAccessible>
+    <id>5</id>
+    <who>Johnny Smith</who>
+    <text>I see you have an apple. Is that for me?</text>
+    <options>
+      <Option>
+        <text>Yes sir. Here you go.</text>
+        <destinationId>6</destinationId>
+      </Option>
+      <Option>
+        <text>No. This is my apple and you can't have it!</text>
+        <destinationId>-1</destinationId>
+      </Option>
+    </options>
+  </Node>
+  <Node>
+    <isAccessible>true</isAccessible>
+    <id>6</id>
+    <who>Johnny Smith</who>
+    <text>Thanks!</text>
+    <options>
+      <Option>
+        <text>...</text>
+        <destinationId>-1</destinationId>
+      </Option>
+    </options>
+  </Node>
+  <Node>
+    <isAccessible>true</isAccessible>
+    <id>7</id>
+    <who>Johnny Smith</who>
+    <text>Thanks again for that apple.</text>
+    <options>
+      <Option>
+        <text>No problem!</text>
+        <destinationId>-1</destinationId>
+      </Option>
+    </options>
+  </Node>
+</ArrayOfNode>

@@ -1,0 +1,24 @@
+{
+    "miniQuests": [
+        {
+            "pointOfContact": "Johnny Smith",
+            "name": "Find Johnny's Hammer",
+            "id": 0,
+            "started": false,
+            "conditionsMet": false,
+            "completed": false,
+            "items": ["Hammer"],
+            "rewards": ["Legendary Bow"]
+        },
+        {
+            "pointOfContact": "Johnny Smith",
+            "name": "Find A Weapon",
+            "id": 1,
+            "started": false,
+            "conditionsMet": false,
+            "completed": false,
+            "costGold": 50,
+            "rewards": ["Oak Bow (u)", "Bowstring"]
+        }
+    ]
+}
