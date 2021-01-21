@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class Slot : MonoBehaviour
 {
+    public int slotId;
     public bool isFilled;
     public GameObject item;
     public GameObject slotSelector;
@@ -21,13 +22,20 @@ public class Slot : MonoBehaviour
     private ItemDetails itemDetailsScript;
     private SlotSelector slotSelectorScript;
     private AudioSource audioSource;
+    private PlayerData playerData;
 
-    private void Start()
+    private void Awake()
     {
+        PreLoadSlots();
         audioSource = GetComponent<AudioSource>();
         itemDetailsScript = itemDetails.GetComponent<ItemDetails>();
         slotSelectorScript = slotSelector.GetComponent<SlotSelector>();
         UpdateSlotText();
+    }
+
+    public void PreLoadSlots()
+    {
+        playerData =  gameObject.transform.root.GetComponent<DataHandler>().playerData;
     }
 
     public void SelectSlot()
@@ -65,7 +73,7 @@ public class Slot : MonoBehaviour
     {
         if (this.isActiveAndEnabled)
         {
-            audioSource.PlayOneShot(deselectSlotSound);
+          //  audioSource.PlayOneShot(deselectSlotSound);
         }
         isSelected = false;
         itemDetails.SetActive(false);
@@ -76,12 +84,16 @@ public class Slot : MonoBehaviour
 
     public void FillSlot(GameObject i)
     {
+        PreLoadSlots();
+        ItemHandler itemHandler = i.GetComponent<ItemHandler>();
         item = i;
         isFilled = true;
         itemImage.enabled = true;
         itemImage.texture = i.GetComponent<RawImage>().texture;
         UpdateSlotText();
-        i.GetComponent<ItemHandler>().inSlot = this;
+        itemHandler.inSlot = this;
+        playerData.items[slotId] = itemHandler.itemName;
+        playerData.itemAmounts[slotId] = itemHandler.amount;
     }
 
     public void EmptySLot()
@@ -91,17 +103,23 @@ public class Slot : MonoBehaviour
         itemImage.enabled = false;
         itemImage.texture = null;
         UpdateSlotText();
+        playerData.items[slotId] = "Empty";
+        playerData.itemAmounts[slotId] = 0;
     }
 
     public void AddToItem(int a)
     {
-        item.GetComponent<ItemHandler>().amount += a;
+        ItemHandler itemHandler = item.GetComponent<ItemHandler>();
+        itemHandler.amount += a;
+        playerData.itemAmounts[slotId] = itemHandler.amount;
         UpdateSlotText();
     }
 
     public void SubtractFromItem(int a)
     {
-        item.GetComponent<ItemHandler>().amount -= a;
+        ItemHandler itemHandler = item.GetComponent<ItemHandler>();
+        itemHandler.amount -= a;
+        playerData.itemAmounts[slotId] = itemHandler.amount;
         UpdateSlotText();
     }
 
@@ -114,6 +132,10 @@ public class Slot : MonoBehaviour
         else
         {
             slotText.GetComponent<Text>().text = item.GetComponent<ItemHandler>().amount.ToString();
+        }
+        if (item)
+        {
+            playerData.itemAmounts[slotId] = item.GetComponent<ItemHandler>().amount;
         }
     }
 }

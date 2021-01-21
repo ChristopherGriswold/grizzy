@@ -1,10 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Realtime;
-using Photon.Pun;
+using UnityEngine.AI;
 
-public class EnemyController : MonoBehaviourPunCallbacks
+public class EnemyController : MonoBehaviour
 {
     public string enemyName;
     public int level;
@@ -21,13 +20,18 @@ public class EnemyController : MonoBehaviourPunCallbacks
     public AudioClip dieSound;
     public AudioClip biteSound;
     public SpawnItems spawnItems;
-    public GameObject xpPrefab;
     public int xpAmount;
+    public Material phaseMaterial;
+    private float xpModifer;
     private GameObject gameManager;
+    private DataHandler dataHandler;
     public AudioSource audioSource;
     private AgentMove agentMove;
     private GameObject xpPopup;
+    private GameObject player;
     private Vector3 killerPosition;
+    private Vector3 endDir;
+
 
    // Dictionary<string, float> dropTable = new Dictionary<string, float>();
 
@@ -36,8 +40,19 @@ public class EnemyController : MonoBehaviourPunCallbacks
         audioSource = GetComponent<AudioSource>();
         agentMove = GetComponent<AgentMove>();
         gameManager = GameObject.FindGameObjectWithTag("Game Manager");
+        dataHandler = GameObject.FindGameObjectWithTag("Player").GetComponent<DataHandler>();
+
         health = startHealth;
         gameObject.name = enemyName;
+
+        if(this.gameObject.name == "Chicken King")
+        {
+            int bossKills = dataHandler.playerData.bossKills;
+            if (bossKills == 0)
+            {
+                xpAmount = 2500;
+            }
+        }
         
     }
 
@@ -50,9 +65,10 @@ public class EnemyController : MonoBehaviourPunCallbacks
 
     public void Damage(int amount, GameObject killer)
     {
+        xpModifer += Vector3.Distance(this.gameObject.transform.position, killer.transform.position) / 5;
         agentMove.Flee(killer);
         // health -= amount;
-        photonView.RPC("RpcDamage", RpcTarget.All, amount);
+        RpcDamage(amount);
         if (health <= 0)
         {
             Die(killer);
@@ -65,7 +81,6 @@ public class EnemyController : MonoBehaviourPunCallbacks
             audioSource.PlayDelayed(.25f);
         }
     }
-    [PunRPC]
     public void RpcDamage(int amount)
     {
         health -= amount;
@@ -73,33 +88,34 @@ public class EnemyController : MonoBehaviourPunCallbacks
 
     void Die(GameObject killer)
     {
+        player = killer;
         killerPosition = killer.transform.position;
-        if (xpPopup)
-        {
-            Destroy(xpPopup);
-        }
-        xpPopup = Instantiate(xpPrefab, transform.GetChild(0).position, Quaternion.identity);
-        xpPopup.GetComponent<XPPopup>().Popup(killer, xpAmount);
-      //  killer.GetComponent<XPController>().GainXP("Combat", modifiedXpAmount);
+        killer.GetComponent<XPController>().GainXp("Attack", xpAmount + (int)xpModifer);
         DropItems();
-
-        photonView.RPC("RpcDie", RpcTarget.All, null);
+        RpcDie();
     }
 
-    [PunRPC]
     public void RpcDie()
     {
-        gameObject.SetActive(false);
-        Invoke("Reincarnate", 1f);
+        PhaseOut();
+    //    gameObject.SetActive(false);
+      //  Invoke("Reincarnate", 1f);
         //  gameManager.GetComponent<SpawnItems>().SpawnOne(gameObject);
         //  PhotonNetwork.Destroy(gameObject);
     }
 
     public void Reincarnate()
     {
-        health = startHealth;
-        gameManager.GetComponent<SpawnItems>().MoveOne(gameObject);
-        gameObject.SetActive(true);
+     //   health = startHealth;
+        if(this.gameObject.name == "Chicken King")
+        {
+
+            dataHandler.playerData.bossKills++;
+            dataHandler.SaveData();
+        }
+        gameManager.GetComponent<SpawnItems>().SpawnOne(gameObject);
+        Destroy(this.gameObject);
+     //   gameObject.SetActive(true);
     }
 
     void DropItems()
@@ -122,8 +138,48 @@ public class EnemyController : MonoBehaviourPunCallbacks
         }
     //    newItem.transform.position = gameObject.transform.position;
         newItem.GetComponent<AudioSource>().PlayOneShot(dieSound);
-        newItem.GetComponent<Rigidbody>().AddForce((Vector3.up * 30) + directionToPlayer * 2.5f);
-       // newItem.GetComponent<Rigidbody>().AddRelativeForce(directionToPlayer * 1);  //Random.Range(0, 0), Random.Range(30, 30), Random.Range(0, 0)
+        if (player.GetComponent<DataHandler>().playerData.rewardsPurchased.Contains(4))
+        {
+            newItem.GetComponent<Rigidbody>().AddForce((Vector3.up * 30) + directionToPlayer * 2.5f);
+        }
+        else
+        {
+            newItem.GetComponent<Rigidbody>().AddForce((Vector3.up * 30));
+        }
+    }
+
+    public void PhaseOut()
+    {
+        this.gameObject.GetComponent<Collider>().enabled = false;
+        audioSource.clip = dieSound;
+        audioSource.pitch = 1;
+        audioSource.Play(); 
+        this.gameObject.GetComponent<Animator>().speed = 0;
+        endDir = gameObject.GetComponent<AgentMove>().agent.velocity;
+        gameObject.GetComponent<AgentMove>().agent.enabled = false;
+        gameObject.GetComponent<AgentMove>().StopAllCoroutines();
+        gameObject.GetComponent<AgentMove>().enabled = false;
+        gameObject.GetComponent<NavMeshAgent>().enabled = false;
+        gameObject.GetComponent<Rigidbody>().useGravity = true;
+        StartCoroutine(DeathAnimation());
+        SkinnedMeshRenderer skinnedMeshRenderer = this.gameObject.GetComponentInChildren<SkinnedMeshRenderer>();
+        Material currentMaterial = skinnedMeshRenderer.material;
+        Material[] mats = skinnedMeshRenderer.materials;
+        mats[0] = phaseMaterial;
+        skinnedMeshRenderer.materials = mats;
+        Invoke("Reincarnate", 2f);
+    }
+    IEnumerator DeathAnimation()
+    {
+        float randomRotScale = Random.Range(-100, 100);
+        while (true)
+        {
+            transform.Translate(endDir * Time.deltaTime, Space.World);
+        //    transform.Rotate(Vector3.up * Time.deltaTime * 50, Space.World);
+            transform.Rotate(Vector3.right * Time.deltaTime * 20, Space.Self);
+            transform.Rotate(Vector3.forward * Time.deltaTime * randomRotScale, Space.Self);
+            yield return new WaitForEndOfFrame();
+        }
     }
 
 }

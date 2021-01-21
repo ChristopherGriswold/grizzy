@@ -116,7 +116,6 @@ GameObject:
   - component: {fileID: 54711629387773862}
   - component: {fileID: 108669569437555940}
   - component: {fileID: 82699086526854500}
-  - component: {fileID: 114474048250519144}
   m_Layer: 14
   m_Name: Arrow
   m_TagString: 9mm Ammo
@@ -157,16 +156,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f4422a430f023341949744418e9b800, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  itemId: 2
   itemName: Arrow
   description: Just a basic arrow
   type: Ammo
   useButtonText: LOAD
+  xpToCraft: 10
   effect: Attack
   effectInt: 0
-  value: 1
-  amount: 10
+  value: 5
+  amount: 1
   levelRequired: 1
   maxDrawPower: 0
+  isKeptOnDeath: 0
   isStackable: 1
   isStackableInBank: 1
   isQuestItem: 0
@@ -410,28 +412,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &114474048250519144
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1979010831102356}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 0
-  OwnershipTransfer: 1
-  ObservedComponents:
-  - {fileID: 0}
-  viewIdField: 0
-  InstantiationId: 1
-  isRuntimeInstantiated: 0
 --- !u!1 &4707490346042453277
 GameObject:
   m_ObjectHideFlags: 0

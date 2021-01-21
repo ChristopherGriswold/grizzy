@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Photon.Pun;
 
 public class UseButtonHandler : MonoBehaviour
 {
@@ -15,6 +14,7 @@ public class UseButtonHandler : MonoBehaviour
     public GameObject armorSlot;
     public GameObject weaponButton;
     public AudioClip errorSound;
+    public AudioClip combineSound;
     public GameObject cannotEquipText;
     public bool isCombining;
 
@@ -23,15 +23,16 @@ public class UseButtonHandler : MonoBehaviour
     public GameObject selectedItem;
     public ItemHandler selectedItemHandler;
     private Slot selectedSlot;
-    private WeaponButtonHandler weaponButtonHandler;
     private AudioSource audioSource;
     private AudioClip useItemAudioClip;
     private GameObject tempObject;
+    private XPController xpController;
 
     private void Start()
     {
         healthController = Player.GetComponentInChildren<HealthController>();
-        weaponButtonHandler = weaponButton.GetComponent<WeaponButtonHandler>();
+        xpController = Player.GetComponent<XPController>();
+      //  weaponButtonHandler = weaponButton.GetComponent<WeaponButtonHandler>();
         audioSource = GetComponent<AudioSource>();
     }
 
@@ -105,7 +106,12 @@ public class UseButtonHandler : MonoBehaviour
     private IEnumerator CantEquipNotification()
     {
         cannotEquipText.SetActive(true);
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSecondsRealtime(3f);
+        cannotEquipText.SetActive(false);
+    }
+
+    private void OnDisable()
+    {
         cannotEquipText.SetActive(false);
     }
 
@@ -113,7 +119,8 @@ public class UseButtonHandler : MonoBehaviour
     {
         if (i.GetComponent<ItemHandler>().type == "Weapon")
         {
-            if((Player.GetComponentInChildren<PlayerDetails>().GetCombatLvl() >= selectedItemHandler.levelRequired))
+            int combatLvl = ((int)Mathf.Pow(Player.GetComponent<PlayerVariables>().attackXp, .25f));
+            if ((combatLvl >= selectedItemHandler.levelRequired))
             {
                 if (weaponSlot.GetComponent<Slot>().isFilled)
                 {
@@ -121,7 +128,7 @@ public class UseButtonHandler : MonoBehaviour
                     return;
                 }
                 weaponHud.SetActive(true);
-                weaponButtonHandler.RegisterEquippedWeapon(i);
+                i.GetComponent<FireWeapon>().enabled = true;
                 weaponSlot.GetComponent<Slot>().FillSlot(i);
                 weaponHud.GetComponent<RawImage>().texture = i.GetComponent<RawImage>().texture;
             }
@@ -142,13 +149,17 @@ public class UseButtonHandler : MonoBehaviour
             armorSlot.GetComponent<Slot>().FillSlot(i);
             armorHud.GetComponent<RawImage>().texture = i.GetComponent<RawImage>().texture;
         }
-        useItemAudioClip = selectedItemHandler.useItemSound;
+        audioSource = GetComponent<AudioSource>();
+        useItemAudioClip = i.GetComponent<ItemHandler>().useItemSound;
         audioSource.PlayOneShot(useItemAudioClip);
         DisableButton();
         i.GetComponent<EquipmentHandler>().Equip();
-        selectedSlot.EmptySLot();
+        if (selectedSlot)
+        {
+            selectedSlot.EmptySLot();
+            selectedSlot.DeselectSlot();
+        }
         selectedItemHandler.isEquipped = true;
-        selectedSlot.DeselectSlot();
     }
 
     public void Unequip(GameObject i)
@@ -159,7 +170,6 @@ public class UseButtonHandler : MonoBehaviour
             {
                 weaponHud.SetActive(false);
                 weaponHud.GetComponent<RawImage>().texture = null;
-                weaponButtonHandler.RegisterEquippedWeapon(null);
             }
             else if (i.GetComponent<ItemHandler>().type == "Armor")
             {
@@ -188,7 +198,6 @@ public class UseButtonHandler : MonoBehaviour
         if (backpack.GetComponent<Backpack>().AddToBackpack(weaponSlot.GetComponent<Slot>().item))
         {
             weaponSlotSlot.item.GetComponent<EquipmentHandler>().Unequip();
-            weaponButtonHandler.RegisterEquippedWeapon(null);
             weaponSlotSlot.item.GetComponent<ItemHandler>().isEquipped = false;
             weaponSlotSlot.item.GetComponent<FireWeapon>().enabled = false;
             weaponSlotSlot.item.SetActive(false);
@@ -199,7 +208,6 @@ public class UseButtonHandler : MonoBehaviour
         DisableButton();
         tempObject.SetActive(true);
         tempObject.GetComponent<EquipmentHandler>().Equip();
-        weaponButtonHandler.RegisterEquippedWeapon(tempObject);
         weaponSlot.GetComponent<Slot>().FillSlot(tempObject);
         weaponHud.GetComponent<RawImage>().texture = tempObject.GetComponent<RawImage>().texture;
         selectedItemHandler.isEquipped = true;
@@ -210,19 +218,20 @@ public class UseButtonHandler : MonoBehaviour
         
         
         tempObject = i;
-        selectedSlot.EmptySLot();
+        if (selectedSlot)
+        {
+            selectedSlot.EmptySLot();
+        }
         if (i.GetComponent<ItemHandler>().type == "Weapon")
         {
             Slot weaponSlotSlot = weaponSlot.GetComponent<Slot>();
             if (backpack.GetComponent<Backpack>().AddToBackpack(weaponSlot.GetComponent<Slot>().item))
             {
                 weaponSlotSlot.item.GetComponent<EquipmentHandler>().Unequip();
-                weaponButtonHandler.RegisterEquippedWeapon(null);
                 weaponSlotSlot.item.GetComponent<ItemHandler>().isEquipped = false;
                 weaponSlotSlot.item.GetComponent<FireWeapon>().enabled = false;
                 weaponSlotSlot.item.SetActive(false);
             }
-            weaponButtonHandler.RegisterEquippedWeapon(tempObject);
             weaponSlot.GetComponent<Slot>().FillSlot(tempObject);
             weaponHud.GetComponent<RawImage>().texture = tempObject.GetComponent<RawImage>().texture;
         }
@@ -244,7 +253,10 @@ public class UseButtonHandler : MonoBehaviour
         tempObject.SetActive(true);
         tempObject.GetComponent<EquipmentHandler>().Equip();
         selectedItemHandler.isEquipped = true;
-        selectedSlot.DeselectSlot();
+        if (selectedSlot)
+        {
+            selectedSlot.DeselectSlot();
+        }
     }
 
 
@@ -292,13 +304,37 @@ public class UseButtonHandler : MonoBehaviour
                 }
                 else if (selectedItemHandler.type == "Item")
                 {
-                    selectedSlot.EmptySLot();
+                    resultItem = (GameObject)Instantiate(Resources.Load(selectedItemHandler.combinationsList[i].resultObject.name), go.transform.parent.transform.position, go.transform.parent.transform.rotation);
+                    int resultAmount;
+                    if (selectedItemHandler.amount > goItemHandler.amount)
+                    {
+
+                        resultAmount = goItemHandler.amount;
+                        selectedSlot.SubtractFromItem(goItemHandler.amount);
+                        resultItem.GetComponent<ItemHandler>().amount = resultAmount;
+                        goItemHandler.inSlot.EmptySLot();
+
+                    }
+
+                    else if(selectedItemHandler.amount < goItemHandler.amount)
+                    {
+                        resultAmount = selectedItemHandler.amount;
+                        goItemHandler.inSlot.SubtractFromItem(selectedItemHandler.amount);
+                        resultItem.GetComponent<ItemHandler>().amount = resultAmount;
+                        selectedSlot.EmptySLot();
+
+                    }
+                    else if (selectedItemHandler.amount == goItemHandler.amount)
+                    {
+                        resultAmount = selectedItemHandler.amount;
+                        resultItem.GetComponent<ItemHandler>().amount = resultAmount;
+                        goItemHandler.inSlot.EmptySLot();
+                        selectedSlot.EmptySLot();
+
+                    }
+
                     selectedSlot.DeselectSlot();
-                    backpack.GetComponent<Backpack>().ConsumeItem(selectedItem);
-                    //  resultItem = Instantiate(selectedItemHandler.combinationsList[i].resultObject, go.transform.parent);
-                    resultItem = PhotonNetwork.InstantiateSceneObject(selectedItemHandler.combinationsList[i].resultObject.name, go.transform.parent.transform.position, go.transform.parent.transform.rotation);
-                    go.GetComponent<ItemHandler>().inSlot.GetComponent<Slot>().EmptySLot();
-                    backpack.GetComponent<Backpack>().ConsumeItem(go);
+                    
                     resultItem.GetComponent<ItemHandler>().CraftItem(this.transform.root.gameObject);
                     return resultItem;
                 }

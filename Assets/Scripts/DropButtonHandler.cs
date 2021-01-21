@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Photon.Pun;
-using Photon.Realtime;
 
 public class DropButtonHandler : MonoBehaviour {
     public Text buttonText;
@@ -18,7 +16,6 @@ public class DropButtonHandler : MonoBehaviour {
     public GameObject weaponButton;
 
     private bool dropButtonEnabled;
-    private WeaponButtonHandler weaponButtonHandler;
 
     private void Start()
     {

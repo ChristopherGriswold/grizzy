@@ -4,8 +4,11 @@ using UnityEngine;
 
 public class ItemDatabase : MonoBehaviour
 {
+    public string path = Application.streamingAssetsPath + "/ItemDatabase.json";
     public List<Item> itemList = new List<Item>();
+
 }
+
 
 [System.Serializable]
 public class Item

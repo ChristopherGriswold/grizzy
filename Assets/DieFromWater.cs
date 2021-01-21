@@ -9,8 +9,9 @@ public class DieFromWater : MonoBehaviour
     {
         if(other.gameObject.layer == 13)
         {
-            other.gameObject.transform.root.GetComponentInChildren<HealthController>().Die();
+
             gameObject.GetComponent<AudioSource>().Play();
+            other.gameObject.transform.root.GetComponentInChildren<HealthController>().Die();
         }
     }
 }

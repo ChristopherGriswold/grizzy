@@ -137,7 +137,6 @@ GameObject:
   - component: {fileID: 114173493938480750}
   - component: {fileID: 195648285797647500}
   - component: {fileID: 65203446600654026}
-  - component: {fileID: 114501025310226632}
   - component: {fileID: 327150638033392429}
   m_Layer: 15
   m_Name: Chicken King
@@ -161,6 +160,7 @@ Transform:
   - {fileID: 5111243175457422422}
   - {fileID: 4474461957891496}
   - {fileID: 4669958460224538}
+  - {fileID: 7259034117069217823}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -206,13 +206,14 @@ MonoBehaviour:
   item1: {fileID: 1248121361845844, guid: c0b77adc7576ec74ba23178bc010034b, type: 3}
   item2: {fileID: 1248121361845844, guid: c0b77adc7576ec74ba23178bc010034b, type: 3}
   item3: {fileID: 0}
-  hurtSound: {fileID: 8300000, guid: c474da6deef921643bcd6fce1a69f85f, type: 3}
-  dieSound: {fileID: 8300000, guid: c474da6deef921643bcd6fce1a69f85f, type: 3}
+  hurtSound: {fileID: 8300000, guid: 6455e678bf59ed2499b127e2c93e622a, type: 3}
+  dieSound: {fileID: 8300000, guid: 98cc0db4a37ab224585b39ab2021046b, type: 3}
   biteSound: {fileID: 8300000, guid: 4637609dc1fd4c04e9bbc7ef12388efa, type: 3}
   spawnItems: {fileID: 0}
   xpPrefab: {fileID: 1107320676673596, guid: 6427bf7814712534ab16442bbba4c5bc, type: 3}
-  xpAmount: 2500
-  audioSource: {fileID: 0}
+  xpAmount: 250
+  phaseMaterial: {fileID: 2100000, guid: 09e164a47e240b74bbc1dc8253043fd0, type: 2}
+  audioSource: {fileID: 82897861859211950}
 --- !u!82 &82897861859211950
 AudioSource:
   m_ObjectHideFlags: 0
@@ -331,6 +332,10 @@ MonoBehaviour:
   agent: {fileID: 195648285797647500}
   dontMoveInvisible: {fileID: 114079217633424124}
   animator: {fileID: 95116205621920340}
+  isRoamingIdle: 0
+  playerObject: {fileID: 0}
+  isAttacking: 0
+  canAttack: 1
 --- !u!195 &195648285797647500
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -366,28 +371,6 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 0.3, y: 0.45, z: 0.5}
   m_Center: {x: 0, y: 0.22, z: 0}
---- !u!114 &114501025310226632
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1098075276761104}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 0
-  OwnershipTransfer: 1
-  ObservedComponents:
-  - {fileID: 0}
-  viewIdField: 0
-  InstantiationId: 1
-  isRuntimeInstantiated: 0
 --- !u!54 &327150638033392429
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -982,6 +965,87 @@ Transform:
   m_Father: {fileID: 4362866272234634}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5998422864089729028
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7259034117069217823}
+  - component: {fileID: 7974824807787317072}
+  m_Layer: 24
+  m_Name: MapBlip
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7259034117069217823
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5998422864089729028}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4270442149961896}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!212 &7974824807787317072
+SpriteRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5998422864089729028}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_Sprite: {fileID: 21300000, guid: 0f163fdb66dac4745834a7754617e6a2, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 0.64, y: 0.64}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0
+  m_SpriteSortPoint: 0
 --- !u!1 &6899820779019431553
 GameObject:
   m_ObjectHideFlags: 0

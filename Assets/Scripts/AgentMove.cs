@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using Photon.Pun;
 
-public class AgentMove : MonoBehaviourPunCallbacks
+public class AgentMove : MonoBehaviour
 {
 
     public int fleeDistance;
@@ -19,15 +18,15 @@ public class AgentMove : MonoBehaviourPunCallbacks
     public DontMoveInvisible dontMoveInvisible;
 
     public Animator animator;
-    private bool isRoamingIdle;
+    public bool isRoamingIdle;
 
     private NavMeshPath path;
     private Vector3 randomPoint;
     private Vector3 destination;
     private bool isVisible;
-    private GameObject playerObject;
-    private bool isAttacking = false;
-    private bool canAttack = true;
+    public GameObject playerObject; //fix this
+    public bool isAttacking = false;
+    public bool canAttack = true;
 
     private void OnCollisionEnter(Collision collision)
     {
@@ -60,7 +59,7 @@ public class AgentMove : MonoBehaviourPunCallbacks
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.layer == 13)
+        if (isAggressive && other.gameObject.layer == 13)
         {
             playerObject = other.gameObject;
             AttackPlayer(playerObject);
@@ -185,7 +184,7 @@ public class AgentMove : MonoBehaviourPunCallbacks
             {
                 if (RandomPoint(transform.position, player.transform.position, fleeDistance, out destination))
                 {
-                    photonView.RPC("RpcAgentMove", RpcTarget.All, destination);
+                    Move(destination);
                 }
             }
         }
@@ -196,19 +195,17 @@ public class AgentMove : MonoBehaviourPunCallbacks
         StartCoroutine(ChasePlayer(player));    
     }
 
-    [PunRPC]
-    public void RpcAgentMove(Vector3 dest)
+    public void Move(Vector3 dest)
     {
-        agent.SetDestination(dest);
-        //   agent.CalculatePath(dest, path);
-        //     agent.SetPath(path);
-    }
+        try
+        {
 
-    [PunRPC]
-    public void RpcAgentChase(Vector3 dest)
-    {
-       
-         agent.SetDestination(dest);
+            agent.SetDestination(dest);
+        }
+        catch
+        {
+
+        }
     }
 
 
@@ -269,7 +266,7 @@ public class AgentMove : MonoBehaviourPunCallbacks
                 interceptPoint = targetPosition;
             }
             //now use whatever method to launch the projectile at the intercept point
-            photonView.RPC("RpcAgentChase", RpcTarget.All, interceptPoint);
+            Move(interceptPoint);
 
             yield return new WaitForSeconds(refrestTargetRate);
 
@@ -277,7 +274,7 @@ public class AgentMove : MonoBehaviourPunCallbacks
         }
         SetRoamingIdle();
     }
-    void SetRoamingIdle()
+    public void SetRoamingIdle()
     {
         StopAllCoroutines();
         isRoamingIdle = true;
@@ -298,10 +295,10 @@ public class AgentMove : MonoBehaviourPunCallbacks
                 {
                   //  agent.CalculatePath(destination, path);
                     //  agent.SetPath(path);
-                    photonView.RPC("RpcAgentMove", RpcTarget.All, destination);
+                    Move(destination);
                 }
             }
-            yield return new WaitForSeconds(Random.Range(10, 60));
+            yield return new WaitForSeconds(Random.Range(1, 30));
         }
     }
 

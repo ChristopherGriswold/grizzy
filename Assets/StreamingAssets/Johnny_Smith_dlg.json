@@ -239,7 +239,7 @@
         {
             "id": 14,
             "who": "Johnny Smith",
-            "text": "That will be 50 gold.",
+            "text": "That will be 100 gold.",
             "options": [
                 {
                     "text": "Sounds Reasonable. Here you go.",

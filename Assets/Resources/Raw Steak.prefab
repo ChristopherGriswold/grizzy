@@ -116,7 +116,7 @@ GameObject:
   - component: {fileID: 135465437025966882}
   - component: {fileID: 114745943360209022}
   - component: {fileID: 82780784206393632}
-  - component: {fileID: 114813595439945378}
+  - component: {fileID: 1493251386987449354}
   m_Layer: 14
   m_Name: Raw Steak
   m_TagString: Pick Up
@@ -157,16 +157,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f4422a430f023341949744418e9b800, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  itemId: 7
   itemName: Raw Steak
   description: I wish I could cook this.
   type: Consumable
-  useButtonText: USE
+  useButtonText: EAT
+  xpToCraft: 0
   effect: Health
   effectInt: 20
-  value: 35
+  value: 50
   amount: 1
+  randomMinAmount: 0
+  randomMaxAmount: 0
   levelRequired: 1
   maxDrawPower: 0
+  isKeptOnDeath: 0
   isStackable: 0
   isStackableInBank: 1
   isQuestItem: 0
@@ -404,7 +409,7 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &114813595439945378
+--- !u!114 &1493251386987449354
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -413,19 +418,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1884844517615838}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Script: {fileID: 11500000, guid: 0fc5ca0b1b272b742ac212e8a6f4fef4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 0
-  OwnershipTransfer: 1
-  ObservedComponents:
-  - {fileID: 0}
-  viewIdField: 0
-  InstantiationId: 1
-  isRuntimeInstantiated: 0
+  cookedPrefabName: Cooked Steak
+  cookSound: {fileID: 0}
+  levelToCook: 1
+  timeToCook: 0
+  xpReward: 18
 --- !u!1 &7468265321521696960
 GameObject:
   m_ObjectHideFlags: 0

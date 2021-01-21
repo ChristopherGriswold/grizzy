@@ -1,105 +1,57 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using Photon.Pun;
-using Photon.Realtime;
+using UnityEngine.SceneManagement;
+using System;
+using System.Collections;
 
-public class Launcher : MonoBehaviourPunCallbacks
+public class Launcher : MonoBehaviour
 {
     public GameObject playButton;
     public GameObject controlPanel;
     public GameObject progressLabel;
-    public Text playersOnlineText;
-    public  Object SceneObject;
+    public GameObject mainMenu;
+    public Image loadingBar;
+    public Text progressText;
+    public GameObject SceneObject;
     public GameObject easyModeToggle;
-    public bool isPrivateGame;
-    private bool readyToConnect;
-    public byte MaxPlayersPerRoom = 16;
-    private RoomOptions roomOptions = new RoomOptions();
-    
+    public GameObject rememberPasswordToggle;
+    public GameObject passwordText;
 
-    public override void OnConnectedToMaster()
-    {
-        readyToConnect = true;
-        playersOnlineText.text = "Players Online: " + PhotonNetwork.CountOfPlayersInRooms.ToString() + "/16";
-        controlPanel.SetActive(true);
-     //   progressLabel.SetActive(false);
-        playButton.SetActive(true);
-    }
+    private PlayerData playerData;
 
-    public override void OnDisconnected(DisconnectCause cause)
-    {
-        
-        progressLabel.SetActive(true);
-        progressLabel.GetComponentInChildren<Text>().text = "Connection Lost. Attempting to reconnect.";
-   //     controlPanel.SetActive(false);
-        PhotonNetwork.Reconnect();
-    }
-
-    public override void OnJoinedRoom()
-    {
-        // #Critical: We only load if we are the first player, else we rely on  PhotonNetwork.automaticallySyncScene to sync our instance scene.
-        if (PhotonNetwork.CurrentRoom.PlayerCount == 1)
-        {
-
-            // #Critical
-            // Load the Room Level.
-            PhotonNetwork.LoadLevel("Jungle");
-        }
-        
-    }
-
-    void Awake()
-    {
-        DontDestroyOnLoad(progressLabel);
-        DontDestroyOnLoad(this);
-        PhotonNetwork.SendRate = 50;
-        PhotonNetwork.SerializationRate = 25;
-        PhotonNetwork.GameVersion = "1.3.0";
-        // #Critical
-        // this makes sure we can use PhotonNetwork.LoadLevel() on the master client and all clients in the same room sync their level automatically
-        PhotonNetwork.AutomaticallySyncScene = true;
-
-    }
 
     void Start()
     {
-        if(PlayerPrefs.GetInt("EasyModeEnabled") == 1)
+        playerData = gameObject.GetComponent<DataHandler>().playerData;
+        if (PlayerPrefs.GetInt("EasyModeEnabled") == 1)
         {
             easyModeToggle.GetComponent<Toggle>().isOn = true;
         }
-        roomOptions.MaxPlayers = 16;
-     //   progressLabel.SetActive(false);
+        if(PlayerPrefs.GetInt("RememberPassword") == 1)
+        {
+            rememberPasswordToggle.GetComponent<Toggle>().isOn = true;
+            passwordText.GetComponent<InputField>().text = PlayerPrefs.GetString("Password");
+        }
+        else if(PlayerPrefs.GetInt("RememberPassword") != 1)
+        {
+            rememberPasswordToggle.GetComponent<Toggle>().isOn = false;
+            passwordText.GetComponent<InputField>().text = null;
+        }
+
+        //   progressLabel.SetActive(false);
         controlPanel.SetActive(true);
-        PhotonNetwork.ConnectUsingSettings();
     }
 
     public void Connect()
     {
-        if (isPrivateGame)
-        {
-            int randomRoom = Random.Range(1000, 2000);
-            PhotonNetwork.JoinOrCreateRoom("Room " + randomRoom.ToString(), roomOptions, null); //new RoomOptions() { MaxPlayers = MaxPlayersPerRoom }
-            progressLabel.SetActive(true);
-            progressLabel.GetComponentInChildren<Text>().text = "Connecting... Please Wait.";
-            controlPanel.SetActive(false);
-            return;
-        }
-        if (PhotonNetwork.IsConnected && readyToConnect)
-        {
-            PhotonNetwork.JoinOrCreateRoom("Room One", roomOptions, null); //new RoomOptions() { MaxPlayers = MaxPlayersPerRoom }
-            progressLabel.SetActive(true);
-            progressLabel.GetComponentInChildren<Text>().text = "Connecting... Please Wait.";
-            controlPanel.SetActive(false);
-        }
-        else
-        {
-            PhotonNetwork.ConnectUsingSettings();
-        }
-    }
+        // SceneManager.LoadSceneAsync("Jungle", LoadSceneMode.Single);
+      //  dataHandler.SaveData();
+        StartCoroutine(LoadScene(playerData.currentSceneId));
+   //     progressText.text = "Starting Game";
+        //Change the Text to show the Scene is ready
+      //  loadingBar.fillAmount = 1f;
+      //  SceneManager.LoadScene(playerData.currentSceneId);
 
-    public void SetGamePrivate(bool value)
-    {
-        isPrivateGame = value;
     }
 
     public void EnableEasyMode(bool value)
@@ -115,5 +67,44 @@ public class Launcher : MonoBehaviourPunCallbacks
         }
         PlayerPrefs.SetInt("EasyModeEnabled", tempNum);
     }
+    public void EnableRememberPassword(bool value)
+    {
+        int tempNum = 0;
+        if (value == true)
+        {
+            tempNum = 1;
+        }
+        else
+        {
+            tempNum = 0;
+        }
+        PlayerPrefs.SetInt("RememberPassword", tempNum);
+    }
 
+    public IEnumerator LoadScene(int sceneId)
+    {
+        yield return null;
+
+        //Begin to load the Scene you specify
+        AsyncOperation asyncOperation = SceneManager.LoadSceneAsync(sceneId, LoadSceneMode.Single);
+        //Don't let the Scene activate until you allow it to
+        asyncOperation.allowSceneActivation = false;
+        //When the load is still in progress, output the Text and progress bar
+        while (!asyncOperation.isDone)
+        {
+            //Output the current progress
+          //  loadingBar.fillAmount += (asyncOperation.progress + .1f) * 100 - 50;
+
+            // Check if the load has finished
+            if (asyncOperation.progress >= 0.9f)
+            {
+                progressText.text = "Starting Game";
+                //Change the Text to show the Scene is ready
+                loadingBar.fillAmount = 1f;
+                asyncOperation.allowSceneActivation = true;
+            }
+            yield return null;
+        }
+
+    }
 }

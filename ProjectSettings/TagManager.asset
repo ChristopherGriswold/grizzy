@@ -23,6 +23,9 @@ TagManager:
   - HitMarker
   - Game Manager
   - NPC
+  - CookingStation
+  - RewardShop
+  - GeneralStore
   layers:
   - Default
   - TransparentFX
@@ -32,9 +35,9 @@ TagManager:
   - UI
   - 
   - 
-  - Network Manager
+  - Structure
   - Terrain
-  - Decorations
+  - Interactable
   - MiniMap
   - Map
   - Player
@@ -46,10 +49,10 @@ TagManager:
   - Your Own Projectiles
   - Item Trigger
   - Enemy Radius
-  - 
-  - 
-  - 
-  - 
+  - SafeZone
+  - SafeZoneTrigger
+  - EnemyMiniMap
+  - ItemMagner
   - 
   - 
   - 

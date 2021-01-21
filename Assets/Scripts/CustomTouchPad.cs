@@ -14,6 +14,7 @@ public class CustomTouchPad : MonoBehaviour, IDragHandler, IPointerDownHandler, 
     public GameObject targetCanvas;
     public GameObject dialoguePanel;
     public GameObject menuButton;
+    public GameObject miniMapButton;
     public GameObject weaponButton;
     public float verticalLookSpeed;
     public float horizontalLookSpeed;
@@ -24,9 +25,8 @@ public class CustomTouchPad : MonoBehaviour, IDragHandler, IPointerDownHandler, 
     private RaycastHit hit;
     private RaycastHit lineHit;
     private Slot weaponSlotSlot;
-    private FireWeapon fireWeapon;
+    public FireWeapon fireWeapon;
     private TargetHandler targetHandler;
-    private WeaponButtonHandler weaponButtonHandler;
     private RawImage menuButtonImage;
     private float tiltAngle;
     private Vector3 screenPoint;
@@ -39,7 +39,7 @@ public class CustomTouchPad : MonoBehaviour, IDragHandler, IPointerDownHandler, 
     private Vector2 touchDeltaPosition;
     private LayerMask enemyLayerMask;
     private LayerMask npcLayerMask;
-    private LayerMask treeLayerMask;
+    private LayerMask interactableLayerMask;
     private int targetRange;
     private bool isFiring;
     private bool doubleTapStillActive;
@@ -50,10 +50,9 @@ public class CustomTouchPad : MonoBehaviour, IDragHandler, IPointerDownHandler, 
         cam = fpsCam.GetComponent<Camera>();
         targetHandler = targetCanvas.GetComponent<TargetHandler>();
         weaponSlotSlot = weaponSlot.GetComponent<Slot>();
-        weaponButtonHandler = weaponButton.GetComponent<WeaponButtonHandler>();
         enemyLayerMask = 1 << 15;
         npcLayerMask = 1 << 16;
-        treeLayerMask = 1 << 18;
+        interactableLayerMask = 1 << 10;
         menuButtonImage = menuButton.GetComponent<RawImage>();
 
 
@@ -124,7 +123,7 @@ public class CustomTouchPad : MonoBehaviour, IDragHandler, IPointerDownHandler, 
 
     private void ThirdClick()
     {
-        if (fireWeapon != null)
+        if (fireWeapon != null && fireWeapon.bowDrawn)
         {
             isFiring = false;
             fireWeapon.CancelDrawBow();
@@ -208,6 +207,7 @@ public void OnDrag(PointerEventData eventData)
                 //  targetCanvas.SetActive(true);
                 //  targetHandler.AcquireTargetNPC(objectHit);
                 menuButtonImage.raycastTarget = false;
+                miniMapButton.GetComponent<Button>().interactable = false;
                 dialoguePanel.SetActive(true);
                 objectHit.GetComponent<DialogueManager>().LinkPanel(dialoguePanel, this.gameObject);
                 objectHit.GetComponent<DialogueManager>().PopulateDialogue(true);
@@ -216,11 +216,12 @@ public void OnDrag(PointerEventData eventData)
             else
             {
                 menuButtonImage.raycastTarget = true;
+                miniMapButton.GetComponent<Button>().interactable = true;
                 dialoguePanel.SetActive(false);
                 objectHit = null;
             }
         }
-        else if (Physics.Raycast(ray, out hit, rayLength, treeLayerMask))
+        else if (Physics.Raycast(ray, out hit, rayLength, interactableLayerMask))
         {
             if (objectHit == hit.collider.gameObject)
             {
@@ -229,21 +230,40 @@ public void OnDrag(PointerEventData eventData)
                 return;
             }
             objectHit = hit.collider.gameObject;
-            targetRange = objectHit.GetComponent<TreeController>().targetRange;
+            targetRange = 5;
             if ((Vector3.Distance(cam.transform.position, objectHit.transform.GetChild(0).position) <= targetRange))
             {
-                //  targetCanvas.SetActive(true);
-                //  targetHandler.AcquireTargetNPC(objectHit);
-                menuButtonImage.raycastTarget = false;
-                dialoguePanel.SetActive(true);
-            //    objectHit.GetComponent<DialogueManager>().LinkPanel(dialoguePanel, this.gameObject);
-             //   objectHit.GetComponent<DialogueManager>().PopulateDialogue();
+                if (objectHit.tag == "CookingStation" && player.GetComponent<DataHandler>().playerData.rewardsPurchased.Contains(2))
+                {
+                    transform.root.gameObject.GetComponentInChildren<CookingManager>(true).gameObject.SetActive(true);
+
+                    menuButtonImage.raycastTarget = false;
+                    miniMapButton.GetComponent<Button>().interactable = false;
+                }
+                if(objectHit.tag == "RewardShop")
+                {
+
+                    transform.root.gameObject.GetComponentInChildren<RewardShop>(true).gameObject.SetActive(true);
+
+                    menuButtonImage.raycastTarget = false;
+                    miniMapButton.GetComponent<Button>().interactable = false;
+                }
+                if (objectHit.tag == "GeneralStore")
+                {
+
+                    transform.root.gameObject.GetComponentInChildren<Store>(true).gameObject.SetActive(true);
+
+                    menuButtonImage.raycastTarget = false;
+                    miniMapButton.GetComponent<Button>().interactable = false;
+                }
                 StartCoroutine("CheckIfTargetLocked");
             }
             else
             {
                 menuButtonImage.raycastTarget = true;
-                dialoguePanel.SetActive(false);
+                miniMapButton.GetComponent<Button>().interactable = true;
+                transform.root.gameObject.GetComponentInChildren<CookingManager>(true).gameObject.SetActive(false);
+                transform.root.gameObject.GetComponentInChildren<RewardShop>(true).gameObject.SetActive(false);
                 objectHit = null;
             }
         }
@@ -251,6 +271,8 @@ public void OnDrag(PointerEventData eventData)
 
     public void AcquireTarget(GameObject hit)
     {
+        objectHit = hit;
+        targetRange = objectHit.GetComponent<EnemyController>().targetRange;
         targetCanvas.SetActive(false);
         targetCanvas.SetActive(true);
         targetHandler.AcquireTarget(hit);
@@ -277,7 +299,7 @@ public void OnDrag(PointerEventData eventData)
         onScreen = screenPoint.z > 0 && screenPoint.x > 0 && screenPoint.x < 1 && screenPoint.y > 0 && screenPoint.y < 1;
         if (Physics.Linecast(cam.transform.position, objectHit.transform.GetChild(0).position, out lineHit) && onScreen)
         {
-            if (lineHit.collider.gameObject != objectHit || (Vector3.Distance(cam.transform.position, lineHit.transform.GetChild(0).position) > targetRange))
+            if ((lineHit.collider.gameObject != objectHit && lineHit.collider.gameObject.layer != 13 && lineHit.collider.gameObject.layer != 2) || Vector3.Distance(cam.transform.position, lineHit.transform.GetChild(0).position) > targetRange)
             {
                 ClearTarget();
             } 
@@ -290,7 +312,12 @@ public void OnDrag(PointerEventData eventData)
 
     public void ClearTarget()
     {
+        transform.root.gameObject.GetComponentInChildren<RewardShop>(true).gameObject.SetActive(false);
         dialoguePanel.SetActive(false);
+
+        miniMapButton.GetComponent<Button>().interactable = true;
+        transform.root.gameObject.GetComponentInChildren<CookingManager>(true).gameObject.SetActive(false);
+        transform.root.gameObject.GetComponentInChildren<Store>(true).gameObject.SetActive(false);
         menuButtonImage.raycastTarget = true;
         StopCoroutine("CheckIfTargetLocked");
         objectHit = null;

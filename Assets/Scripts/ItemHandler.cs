@@ -1,21 +1,24 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
-using Photon.Realtime;
 
-public class ItemHandler : MonoBehaviourPun
+public class ItemHandler : MonoBehaviour
 {
+    public int itemId;
     public string itemName;
     public string description;
     public string type;
     public string useButtonText;
+    public int xpToCraft;
     public string effect;
     public int effectInt;
     public int value;
     public int amount = 1;
+    public int randomMinAmount;
+    public int randomMaxAmount;
     public int levelRequired;
     public int maxDrawPower;
+    public bool isKeptOnDeath;
     public bool isStackable;
     public bool isStackableInBank;
     public bool isQuestItem;
@@ -24,49 +27,34 @@ public class ItemHandler : MonoBehaviourPun
     public bool isEquipped;
     public Slot inSlot;
     public GameObject triggerCollider;
+    public bool doGetGatheringXp;
+    public int gatheringXp;
 
     //key = name of item this item can be combined with. Value = name of item that is created upon combining said items.
     public List<Combinations> combinationsList = new List<Combinations>();
 
     public AudioClip useItemSound;
 
-
-    private void Awake()
-    {
-        gameObject.name = itemName;
-        ComeAlive();
-    }
-
-    private void ComeAlive()
-    {
-        if (shouldBecomeVisibleToAll && !photonView.IsSceneView)
-        {
-            Invoke("MakeVisibleToAll", 5f);
-        }
-        if (shouldExpire && gameObject.activeInHierarchy)
-        {
-            StartCoroutine(Expire(30f));
-        }
-    }
-
     // Use this for initialization
-    void Start ()
+    void Awake ()
     {
 
-        if (type == "Ammo" && !photonView.isRuntimeInstantiated)
+        gameObject.name = itemName;
+        if (randomMinAmount > 0 )
         {
-            amount = Random.Range(1, 16);
+            amount = Random.Range(randomMinAmount, randomMaxAmount + 1);
         }
-        if(value == 0)
+
+        if (value == 0)
         {
             gameObject.GetComponent<Light>().color = Color.red;
-        }else if (value >= 1000)
+        }else if (value >= 50)
         {
             gameObject.GetComponent<Light>().color = Color.magenta;
-        }else if (value >= 500)
+        }else if (value >= 10)
         {
             gameObject.GetComponent<Light>().color = Color.blue;
-        }else if (value >= 100)
+        }else if (value >= 2)
         {
             gameObject.GetComponent<Light>().color = Color.yellow;
         }
@@ -86,94 +74,108 @@ public class ItemHandler : MonoBehaviourPun
 
     private void OnTriggerEnter(Collider collision)
     {
-        if (collision.gameObject.layer == 13)
+        if(collision.gameObject.layer == 25)
         {
+            Vector3 directionToPlayer = collision.gameObject.transform.position - transform.position;
+            gameObject.GetComponent<Rigidbody>().AddForce(directionToPlayer * 10f);
+        }
+        if (this.GetComponentInChildren<BoxCollider>())
+        {
+         //   return;
+        }
+        if (collision.gameObject.layer == 13)
+        { 
             PickUpItem(collision.gameObject);
         }
     }
 
     public void PickUpItem(GameObject player)
     {
-        if (this.gameObject.GetPhotonView().IsSceneView || this.gameObject.GetPhotonView().Owner == player.GetPhotonView().Owner)
+        if (player.GetComponent<PlayerReferences>().backpack.GetComponent<Backpack>().RoomInBackpack(this.gameObject))
         {
-            if (player.GetComponent<PlayerReferences>().backpack.GetComponent<Backpack>().RoomInBackpack(this.gameObject))
+            triggerCollider.SetActive(false);
+            gameObject.SetActive(false);
+            StopAllCoroutines();
+            transform.SetParent(player.GetComponent<PlayerReferences>().itemDatabase.transform);
+            player.GetComponent<AudioSource>().Play();
+            player.GetComponent<ChatManager>().LocalNotification(gameObject);
+            if (doGetGatheringXp)
             {
-                triggerCollider.SetActive(false);
-                gameObject.SetActive(false);
-                StopAllCoroutines();
-                CancelInvoke("MakeVisibleToAll");
-                //   photonView.RPC("RpcParentItem", RpcTarget.All, player.GetPhotonView().ViewID);
-                transform.SetParent(player.GetComponent<PlayerReferences>().itemDatabase.transform);
-                player.GetComponent<AudioSource>().Play();
-                player.GetComponent<ChatManager>().LocalNotification(gameObject);
-                player.GetComponent<PlayerReferences>().backpack.GetComponent<Backpack>().AddToBackpack(gameObject);
+                player.GetComponent<XPController>().GainXp("Gathering", gatheringXp);
+                doGetGatheringXp = false;
             }
-            else
-            {
-                player.GetComponent<ChatManager>().LocalNotification("You can't carry any more items. Your backpack is full!", Color.red, false);
-            }
+            player.GetComponent<PlayerReferences>().backpack.GetComponent<Backpack>().AddToBackpack(gameObject);
         }
-        
+        else
+        {
+            player.GetComponent<ChatManager>().LocalNotification("You can't carry any more items. Your backpack is full!", Color.red, false);
+        }
+
     }
 
     public void ReceiveItem(GameObject player)
     {
-        if (this.gameObject.GetPhotonView().IsSceneView || this.gameObject.GetPhotonView().Owner == player.GetPhotonView().Owner)
+        if (player.GetComponent<PlayerReferences>().backpack.GetComponent<Backpack>().RoomInBackpack(this.gameObject))
         {
-            if (player.GetComponent<PlayerReferences>().backpack.GetComponent<Backpack>().RoomInBackpack(this.gameObject))
-            {
-                triggerCollider.SetActive(false);
-                gameObject.SetActive(false);
-                StopAllCoroutines();
-                CancelInvoke("MakeVisibleToAll");
-                transform.SetParent(player.GetComponent<PlayerReferences>().itemDatabase.transform);
-                player.GetComponent<AudioSource>().Play();
-                player.GetComponent<PlayerReferences>().backpack.GetComponent<Backpack>().AddToBackpack(gameObject);
-            }
-            else
-            {
-                player.GetComponent<ChatManager>().LocalNotification("You can't carry any more items. Your backpack is full!", Color.red, false);
-            }
+            triggerCollider.SetActive(false);
+            gameObject.SetActive(false);
+            StopAllCoroutines();
+            transform.SetParent(player.GetComponent<PlayerReferences>().itemDatabase.transform);
+            player.GetComponent<AudioSource>().Play();
+            player.GetComponent<PlayerReferences>().backpack.GetComponent<Backpack>().AddToBackpack(gameObject);
         }
-
+        else
+        {
+            player.GetComponent<ChatManager>().LocalNotification("You can't carry any more items. Your backpack is full!", Color.red, false);
+        }
     }
 
     public void CraftItem(GameObject player)
     {
-        StopAllCoroutines();
+        if(type == "Weapon")
+        {
+            amount = 0;
+        }
         triggerCollider.SetActive(false);
+        gameObject.SetActive(false);
+        StopAllCoroutines();
         transform.SetParent(player.GetComponent<PlayerReferences>().itemDatabase.transform);
         player.GetComponent<AudioSource>().Play();
         player.GetComponent<PlayerReferences>().backpack.GetComponent<Backpack>().AddToBackpack(gameObject);
         player.GetComponent<ChatManager>().LocalNotification("Crafted: " + gameObject.name, Color.green, true);
+        player.GetComponent<XPController>().GainXp("Crafting", xpToCraft);
+
     }
 
 
 
         public void DropItem()
     {
+        GameObject player = gameObject.transform.root.gameObject;
         if (isEquipped)
         {
             this.gameObject.GetComponent<EquipmentHandler>().Unequip();
         }
-        
-        Vector3 originalPos = this.gameObject.transform.parent.transform.position;
+        Vector3 originalPos = gameObject.transform.parent.transform.position;
+        Quaternion originalRot = gameObject.transform.parent.transform.rotation;
+        transform.SetParent(null);
         transform.position = originalPos;
+        transform.rotation = originalRot;
         Physics.IgnoreLayerCollision(13, 20, true);
+        Physics.IgnoreLayerCollision(14, 14, true);
         gameObject.SetActive(true);
         StartCoroutine(TriggerDisabledTime());
-        gameObject.transform.localPosition = Vector3.zero;
-        gameObject.transform.localRotation = Quaternion.identity;
-        photonView.RPC("RpcParentItem", RpcTarget.All, 000);
-        GetComponent<Rigidbody>().AddRelativeForce(Random.Range(-5, 5), Random.Range(15, 20), Random.Range(15, 20));
+        GetComponent<Rigidbody>().AddRelativeForce(Random.Range(-10, 10), Random.Range(10, 25), Random.Range(10, 25));
         triggerCollider.SetActive(true);
-        ComeAlive();
+        player.GetComponent<PlayerReferences>().backpack.GetComponent<Backpack>().RemoveItem(gameObject);
+        player.GetComponent<ChatManager>().LocalNotification("Dropped: " + gameObject.name, Color.red, true);
     }
 
     IEnumerator TriggerDisabledTime()
     {
-        yield return new WaitForSeconds(.5f);
+        yield return new WaitForSeconds(1f);
         Physics.IgnoreLayerCollision(13, 20, false);
+        Physics.IgnoreLayerCollision(14, 14, true);
     }
 
     public GameObject ReplaceItem(GameObject player)
@@ -181,19 +183,6 @@ public class ItemHandler : MonoBehaviourPun
         if (player.GetComponent<PlayerReferences>().backpack.GetComponent<Backpack>().RoomInBackpack())
         {
             StopAllCoroutines();
-        //    if (!photonView.isRuntimeInstantiated)
-        //    {
-        //        Vector3 itemPosition = gameObject.transform.position;
-        //        gameObject.SetActive(false);
-        //
-        //        GameObject newItem = PhotonNetwork.Instantiate(gameObject.name, itemPosition, Quaternion.identity, 0, null);
-        //        newItem.name = gameObject.name;
-        //        newItem.GetComponent<ItemHandler>().ReplaceItem(player);
-        //        Destroy(gameObject);
-         //       return newItem;
-        //    }
-          //  photonView.TransferOwnership(player.GetPhotonView().ViewID);
-            photonView.RPC("RpcParentItem", RpcTarget.All, player.GetPhotonView().ViewID);
             player.GetComponent<AudioSource>().Play();
             player.GetComponent<ChatManager>().LocalNotification("Crafted: " + gameObject.name, Color.blue, true);
             player.GetComponent<PlayerReferences>().backpack.GetComponent<Backpack>().AddToBackpack(gameObject);
@@ -206,27 +195,12 @@ public class ItemHandler : MonoBehaviourPun
         return null;
     }
 
-
-    IEnumerator Expire(float time)
-    {
-        yield return new WaitForSeconds(time);
-        if (photonView.isRuntimeInstantiated)
-        {
-            PhotonNetwork.Destroy(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-
     public void SetAmount(int a)
     {
         amount = a;
         inSlot.UpdateSlotText();
     }
 
-    [PunRPC]
     public void RpcParentItem(int viewId)
     {
         if (viewId == 000)
@@ -234,22 +208,11 @@ public class ItemHandler : MonoBehaviourPun
             gameObject.transform.SetParent(null, true);
             return;
         }
-        gameObject.transform.SetParent(PhotonView.Find(viewId).gameObject.GetComponent<PlayerReferences>().itemDatabase.transform);
+        gameObject.transform.SetParent(GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerReferences>().itemDatabase.transform);
         gameObject.transform.localPosition = Vector3.zero;
         gameObject.transform.localRotation = Quaternion.identity;
     }
-    [PunRPC]
-    public void RpcInstantiateSceneObject(string itemName, Vector3 position, Quaternion rotation)
-    {
-        PhotonNetwork.InstantiateSceneObject(itemName, position, rotation, 0, null);
-    }
 
-    public void MakeVisibleToAll()
-    {
-        gameObject.SetActive(false);
-        photonView.RPC("RpcInstantiateSceneObject", RpcTarget.MasterClient, gameObject.name, gameObject.transform.position, gameObject.transform.rotation);
-        Destroy(gameObject);
-    }
 }
 
 [System.Serializable]

@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Photon.Pun;
 
-public class FireWeapon : MonoBehaviourPun
+public class FireWeapon : MonoBehaviour
 {
 
     public GameObject ammo;
@@ -14,6 +13,7 @@ public class FireWeapon : MonoBehaviourPun
     public GameObject criticalHitMarkerPrefab;
     public GameObject models;
     public AudioClip shootSound;
+    public AudioClip drawSound;
     public AudioClip reloadSound;
     public AudioClip dryFireSound;
     public float weaponFireRate;
@@ -35,9 +35,10 @@ public class FireWeapon : MonoBehaviourPun
     private Backpack inventory;
     private Queue ammoQueue = new Queue();
     private float countDownTime;
-    private bool bowDrawn;
+    public bool bowDrawn;
     private int maxBowPower;
    CustomTouchPad _customTouchPad;
+    private DataHandler dataHandler;
 
     
     private int weaponDamage;
@@ -45,25 +46,34 @@ public class FireWeapon : MonoBehaviourPun
     private float outcome;
     private float distanceToTarget;
     private float drawStrength;
-    private bool easyModeEnabled;
+    private bool autoAimEnabled;
+    private bool arrowIsLoaded;
 
+
+    public void EnableAutoAim()
+    {
+        autoAimEnabled = true;
+    }
 
     void Start ()
     {
-        if(PlayerPrefs.GetInt("EasyModeEnabled") == 1)
+
+        player = gameObject.transform.root.gameObject;
+        dataHandler = player.GetComponent<DataHandler>();
+        if (dataHandler.playerData.rewardsPurchased.Contains(5))
         {
-            easyModeEnabled = true;
+            EnableAutoAim();
         }
-        LoadArrow();
         anim2 = this.gameObject.GetComponent<Animator>();
     //    anim["Draw"].wrapMode = WrapMode.Once;
      //   anim["Draw"].speed = 1f;
         audioSource = gameObject.GetComponent<AudioSource>();
-        player = gameObject.transform.root.gameObject;
         itemHandler = gameObject.GetComponent<ItemHandler>();
         maxBowPower = itemHandler.maxDrawPower;
         weaponDamage = itemHandler.effectInt;
         ammoCount = itemHandler.amount;
+        
+        LoadArrow();
         weaponHudText = GameObject.Find("WeaponHUD").GetComponentInChildren<Text>();
         weaponHudText.text = ammoCount.ToString();
         inventory = gameObject.transform.root.GetComponentInChildren<Backpack>(true);
@@ -74,16 +84,21 @@ public class FireWeapon : MonoBehaviourPun
 
     private void LoadArrow()
     {
-        GameObject ammoClone = Instantiate(ammo, ammoSpawn.transform);
-     //   ammoClone.GetComponent<ArrowFlight>().SetShooter(player);
-        ammoQueue.Enqueue(ammoClone);
-      //  GameObject ammoClone = Instantiate(ammo, ammoSpawn.transform);
-      //  Rigidbody ammoRigidBody = ammoClone.GetComponent<Rigidbody>();
+        if(ammoCount > 0)
+        {
+            GameObject ammoClone = Instantiate(ammo, ammoSpawn.transform);
+            //   ammoClone.GetComponent<ArrowFlight>().SetShooter(player);
+            ammoQueue.Enqueue(ammoClone);
+            //  GameObject ammoClone = Instantiate(ammo, ammoSpawn.transform);
+            //  Rigidbody ammoRigidBody = ammoClone.GetComponent<Rigidbody>();
+            arrowIsLoaded = true;
+        }
     }
 
     public void UpdateAmmoCount()
     {
         ammoCount = this.gameObject.GetComponent<ItemHandler>().amount;
+        LoadArrow();
         if (weaponHudText)
         {
             weaponHudText.text = ammoCount.ToString();
@@ -135,47 +150,58 @@ public class FireWeapon : MonoBehaviourPun
 
     public void Reload()
     {
-        GameObject ammoInInventory = inventory.FindInBackpack(this.gameObject);
+        GameObject ammoInInventory = null;
+        for (int i = 0; i < itemHandler.combinationsList.Count; i++)
+        {
+           ammoInInventory = inventory.FindInBackpack(itemHandler.combinationsList[i].combinesWith, true);
+        }
         if(!ammoInInventory)
         {
             audioSource.PlayOneShot(dryFireSound);
         }
         else
         {
-            canShoot = false;
             if(ammoCount + ammoInInventory.GetComponent<ItemHandler>().amount <= magSize)
             {
-                ammoCount += ammoInInventory.GetComponent<ItemHandler>().amount;
+                //   ammoCount += ammoInInventory.GetComponent<ItemHandler>().amount;
+                this.gameObject.GetComponent<ItemHandler>().amount += ammoInInventory.GetComponent<ItemHandler>().amount;
                 inventory.RemoveItem(ammoInInventory);
                 Destroy(ammoInInventory);
+                UpdateAmmoCount();
             }
             else
             {
                 ammoInInventory.GetComponent<ItemHandler>().inSlot.SubtractFromItem(magSize - ammoCount);
-                ammoCount = magSize;
+                this.gameObject.GetComponent<ItemHandler>().amount = magSize;
+                UpdateAmmoCount();
             }
+            inSlot.UpdateSlotText();
             audioSource.PlayOneShot(reloadSound);
         }
     }
 
     public void DrawBow()
     {
-        if (canShoot)
+        if (canShoot && arrowIsLoaded)
         {
             bowDrawn = true;
-            audioSource.PlayOneShot(reloadSound);
+            audioSource.PlayOneShot(drawSound);
             //   anim2.SetBool("Draw", true);
 
             anim2.speed = 1f;
             anim2.Play("Draw");
             StartCoroutine(CountTime());
         }
+        else if(ammoCount < 1)
+        {
+            Reload();
+        }
     }
 
     public void CancelDrawBow()
     {
         bowDrawn = false;
-        audioSource.PlayOneShot(reloadSound);
+        audioSource.PlayOneShot(drawSound);
         anim2.speed = 0.25f;
         anim2.Play("Release");
     }
@@ -208,7 +234,7 @@ public class FireWeapon : MonoBehaviourPun
                 canShoot = false;
                 //  photonView.RPC("RpcFireWeapon", RpcTarget.All, null);
 
-           //     anim2.SetBool("Draw", false);
+              //     anim2.SetBool("Draw", false);
              //   anim2.SetBool("Release", true);
                 anim2.Play("Release");
 
@@ -224,35 +250,39 @@ public class FireWeapon : MonoBehaviourPun
                 ammoRigidBody.isKinematic = false;
 
                 ammoRigidBody.AddRelativeForce(0f, 0f, drawStrength);
-                if (easyModeEnabled)
+                if (autoAimEnabled)
                 {
                     if(this.gameObject.name == "Legendary Bow")
                     {
-                        ammoRigidBody.AddForce(Random.Range(-30f, 30f), Random.Range(-20f, 0f), 0f);
+                        ammoRigidBody.AddForce(0f, -20f, 0f);
                     }
                     else
                     {
-                        ammoRigidBody.AddForce(Random.Range(-30f, 30f), Random.Range(20f, 30f), 0f);
+                      //  ammoRigidBody.AddForce(Random.Range(-20f, 20f), Random.Range(20f, 30f), 0f);
                     }
                     if(target != null)
                     {
                         distanceToTarget = Vector3.Distance(this.gameObject.transform.position, target.transform.position);
                     }
-                    ammoRigidBody.AddRelativeForce(0f, 0f, distanceToTarget * Random.Range(10f,20f));
+                    ammoRigidBody.AddRelativeForce(0f, 0f, distanceToTarget * 20f);
+                    ammoRigidBody.AddForce(0f, Mathf.Sqrt(distanceToTarget), 0f);
                 }
                 //  drawStrength = 0;
                 arrowFlight.enabled = true;
                 ammoCount--;
-                itemHandler.SetAmount(ammoCount);
+                //      itemHandler.SetAmount(ammoCount);
+                itemHandler.inSlot.SubtractFromItem(1);
                 weaponHudText.text = ammoCount.ToString();
                 inSlot.UpdateSlotText();
              //   InflictDamage(target);
                 yield return new WaitForSeconds(weaponFireRate);
                 canShoot = true;
+                arrowIsLoaded = false;
                 LoadArrow();
             }
             else
             {
+                
                 Reload();
                 weaponHudText.text = ammoCount.ToString();
                 itemHandler.SetAmount(ammoCount);

@@ -4,8 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Text;
-using System.Xml;
-using System.Xml.Serialization;
 using System.IO;
 
 public class DialogueManager : MonoBehaviour
@@ -230,7 +228,7 @@ public class DialogueManager : MonoBehaviour
     }
 
 
-    private void ActivateTrigger(Trigger trig)
+    public void ActivateTrigger(Trigger trig)
     {
         switch (trig.triggerType)
         {

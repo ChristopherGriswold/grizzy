@@ -12,7 +12,7 @@ public class MapCameraController : MonoBehaviour, IDragHandler
     private Vector2 touchDeltaPosition;
     public float orthoZoomSpeed = 0.02f;
 
-
+    
     void Update()
     {
         if (Input.touchCount == 2)
@@ -44,6 +44,7 @@ public void OnDrag(PointerEventData eventData)
 
     void Start ()
 	{
+        
         mapCamera = mapCameraObject.GetComponent<Camera>();
 	}
 

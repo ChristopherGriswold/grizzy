@@ -51,6 +51,7 @@ SpriteRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -62,6 +63,7 @@ SpriteRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -114,7 +116,6 @@ GameObject:
   - component: {fileID: 135465437025966882}
   - component: {fileID: 114745943360209022}
   - component: {fileID: 82780784206393632}
-  - component: {fileID: 114813595439945378}
   m_Layer: 14
   m_Name: Bowstring
   m_TagString: Pick Up
@@ -155,24 +156,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f4422a430f023341949744418e9b800, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  itemId: 3
   itemName: Bowstring
   description: I need to attach this to an unstrung bow.
   type: Item
   useButtonText: USE
+  xpToCraft: 0
   effect: None
   effectInt: 0
-  value: 10
+  value: 25
   amount: 1
   levelRequired: 1
+  maxDrawPower: 0
+  isKeptOnDeath: 0
   isStackable: 0
   isStackableInBank: 1
+  isQuestItem: 0
   shouldExpire: 1
   shouldBecomeVisibleToAll: 1
   isEquipped: 0
   inSlot: {fileID: 0}
   triggerCollider: {fileID: 5102149969803256510}
   combinationsList:
-  - combinesWith: Oak Bow (u)
+  - combinesWith: Unstrung Bow
     resultName: Wooden Bow
     resultObject: {fileID: 1717406733745140, guid: d03c4353fda446d4f8df56d422578d64,
       type: 3}
@@ -217,8 +223,9 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1884844517615838}
   m_Enabled: 1
-  serializedVersion: 9
+  serializedVersion: 10
   m_Type: 2
+  m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 2
   m_Range: 1
@@ -291,7 +298,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1884844517615838}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -98529514, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
@@ -300,8 +307,6 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
-      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_Texture: {fileID: 2800000, guid: 71eb6c6231bcdf64fb6aa7c6e4947987, type: 3}
   m_UVRect:
     serializedVersion: 2
@@ -405,28 +410,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &114813595439945378
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1884844517615838}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 0
-  OwnershipTransfer: 1
-  ObservedComponents:
-  - {fileID: 0}
-  viewIdField: 0
-  InstantiationId: -1
-  isRuntimeInstantiated: 0
 --- !u!1 &5102149969803256510
 GameObject:
   m_ObjectHideFlags: 0

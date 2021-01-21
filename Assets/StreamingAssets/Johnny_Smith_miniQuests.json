@@ -17,8 +17,8 @@
             "started": false,
             "conditionsMet": false,
             "completed": false,
-            "costGold": 50,
-            "rewards": ["Oak Bow (u)", "Bowstring"]
+            "costGold": 100,
+            "rewards": ["Unstrung Bow", "Bowstring", "Stick1", "Feather1"]
         }
     ]
 }

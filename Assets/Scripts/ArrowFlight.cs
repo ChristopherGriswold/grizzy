@@ -16,10 +16,18 @@ public class ArrowFlight : MonoBehaviour
     private FireWeapon _fireWeapon;
     private bool hasHit;
     private ParticleSystem bloodParticleSystem;
+    private DataHandler dataHandler;
+
+    private bool isExplosive;
 
     // Start is called before the first frame update
     void Start()
     {
+        dataHandler = _shooter.GetComponent<DataHandler>();
+        if (dataHandler.playerData.rewardsPurchased.Contains(3))
+        {
+            isExplosive = true;
+        }
         StartCoroutine(ActivateArrowCollider());
        bloodParticleSystem = bloodParticles.GetComponent<ParticleSystem>();
         Destroy(this.gameObject, 60f);
@@ -29,7 +37,10 @@ public class ArrowFlight : MonoBehaviour
         yield return new WaitForSeconds(0f);
         Time.fixedDeltaTime = 0.01f;
         boxCollider.enabled = true;
-        arrowTrailParticles.SetActive(true);
+        if (isExplosive)
+        {
+            arrowTrailParticles.SetActive(true);
+        }
         yield break;
 
     }
@@ -45,15 +56,22 @@ public class ArrowFlight : MonoBehaviour
         isPs.enabled = false;
         if (collision.gameObject.layer == 15)
         {
-            bloodParticles.SetActive(true);
+            if (isExplosive)
+            {
+                bloodParticles.SetActive(true);
 
-            var main = bloodParticleSystem.main;
-            main.loop = false;   // prewarm only works on looping systems
+                var main = bloodParticleSystem.main;
+                main.loop = false;   // prewarm only works on looping systems
+            }
+            
         }
         else
         {
+            if (isExplosive)
+            {
             hitParticles.SetActive(true);
             hitMarker.SetActive(true);
+            }
         }
         Transform newParent = collision.transform;
         this.gameObject.transform.SetParent(newParent);

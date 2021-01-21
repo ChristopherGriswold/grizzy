@@ -28,33 +28,41 @@ public class TargetHandler : MonoBehaviour
     private float targetHealth;
     private EnemyController enemyController;
 
-    private bool easyModeEnabled;
+    private bool autoAimEnabled;
     private int rangeInt;
     public bool followTarget;
     private float tiltAngle;
     private float healthBarAmount;
     private Color orange;
     private GameObject player;
+    private DataHandler dataHandler;
 
     void Awake()
     {
-        player = fpsCam.transform.root.gameObject;
-        if (PlayerPrefs.GetInt("EasyModeEnabled") == 1)
-        {
-            targetReticle = easyTargetReticle;
-            healthBar = easyHealthBar;
-            targetNameText = easyTargetNameText;
-            targetLevelText = easyTargetLevelText;
-            easyModeEnabled = true;
-        }
+
+        EnableAutoAim();
         orange = new Color(1f, .5f, 0f);
         targetNameText.renderer.sortingOrder = 5;
      //   targetLevelText.renderer.sortingOrder = 5;
      
     }
+
+    public void EnableAutoAim()
+    {
+        player = fpsCam.transform.root.gameObject;
+        dataHandler = player.GetComponent<DataHandler>();
+        if (dataHandler.playerData.rewardsPurchased.Contains(5))
+        {
+            targetReticle = easyTargetReticle;
+            healthBar = easyHealthBar;
+            targetNameText = easyTargetNameText;
+            targetLevelText = easyTargetLevelText;
+            autoAimEnabled = true;
+        }
+    }
     private void OnEnable()
     {
-        if (easyModeEnabled)
+        if (autoAimEnabled)
         {
             followTarget = true;
         }
@@ -70,7 +78,7 @@ public class TargetHandler : MonoBehaviour
 
         if (targetedEnemy.activeInHierarchy && rangeInt <= 50)
         {
-            if (easyModeEnabled && followTarget)
+            if (autoAimEnabled && followTarget)
             {
                 Vector3 targetPostition = new Vector3(targetedEnemy.transform.GetChild(0).position.x,
                                        targetedEnemy.transform.GetChild(0).position.y,
@@ -94,7 +102,7 @@ public class TargetHandler : MonoBehaviour
               //  itemDatabase.transform.localRotation = Quaternion.Euler(tiltAngle, 0, 0);
             }
             UpdateTargetHealth();
-            if (PlayerPrefs.GetInt("EasyModeEnabled") == 1)
+            if (dataHandler.playerData.rewardsPurchased.Contains(5))
             {
                 transform.position = targetedEnemy.transform.GetChild(0).position;
                 targetReticle.transform.localPosition = new Vector3(0, 0, Vector3.Distance(transform.position, fpsCam.transform.position) - .3f);

@@ -12,32 +12,67 @@ public class XPController : MonoBehaviour
     public TextMeshProUGUI level;
     public Image barFillImage;
     public GameObject levelUpText;
+    public GameObject xpPopup;
+    public AudioClip echoClip;
 
     private bool doneCounting;
     private bool isLeveling;
+    private TextMeshProUGUI xpPopupText;
+    private RectTransform xpPopupRectTransform;
+    private Vector3 xpPopupOriginalPos;
+    private AudioSource audioSource;
+    private int xpAmount;
+
+    public int currentShownXp;
+    public int currentXpTotal;
     
     private PlayerVariables playerVariables;
 
     private void Start()
     {
-       playerVariables = player.GetComponent<PlayerVariables>();
+        playerVariables = player.GetComponent<PlayerVariables>();
+        xpPopupText = xpPopup.GetComponent<TextMeshProUGUI>();
+        xpPopupRectTransform = xpPopup.GetComponent<RectTransform>();
+        xpPopupOriginalPos = xpPopupRectTransform.localPosition;
+        audioSource = xpPopup.GetComponent<AudioSource>();
     }
+
     public void GainXp(string xptype, int amount)
     {
+        xpAmount += amount;
+    //    StopCoroutine("SlideXpPopup");
+    //    xpPopup.SetActive(false);
+        xpPopupRectTransform.localPosition = xpPopupOriginalPos;
+      //  xpPopupText.text = "+" + amount + "XP";
+        xpPopup.SetActive(true);
+        StartCoroutine("SlideXpPopup");
+        StartCoroutine("RackupPoints");
         title.text = xptype + ":";
         switch (xptype)
         {
             case "Attack":
                 int currentAttackXp = playerVariables.attackXp;
-                int totalXp = currentAttackXp + amount;
+                int newAttackXp = currentAttackXp + amount;
                 playerVariables.SetAttackXp(currentAttackXp + amount);
-                StartCoroutine(UpdateXpOverlay("Attack", currentAttackXp, totalXp));
+                StartCoroutine(UpdateXpOverlay("Attack", currentAttackXp, newAttackXp));
                 break;
             case "Crafting":
-                playerVariables.SetAttackXp(playerVariables.craftingXp + amount);
+                int currentCraftingXp = playerVariables.craftingXp;
+                int newCraftingXp = currentCraftingXp + amount;
+                playerVariables.SetCraftingXp(currentCraftingXp + amount);
+                StartCoroutine(UpdateXpOverlay("Crafting", currentCraftingXp, newCraftingXp));
+                break;
+            case "Cooking":
+                int currentCookingXp = playerVariables.cookingXp;
+                int newCookingXp = currentCookingXp + amount;
+                playerVariables.SetCookingXp(currentCookingXp + amount);
+                StartCoroutine(UpdateXpOverlay("Cooking", currentCookingXp, newCookingXp));
                 break;
             case "Gathering":
-                playerVariables.SetAttackXp(playerVariables.gatheringXp + amount);
+                int currentGatheringXp = playerVariables.gatheringXp;
+                int newGatheringXp = currentGatheringXp + amount;
+                playerVariables.SetGatheringXp(currentGatheringXp + amount);
+                StartCoroutine(UpdateXpOverlay("Gathering", currentGatheringXp, newGatheringXp));
                 break;
             case "Intelligence":
                 playerVariables.SetAttackXp(playerVariables.cookingXp + amount);
@@ -46,7 +81,6 @@ public class XPController : MonoBehaviour
     }
     public IEnumerator UpdateXpOverlay(string type, int startXp, int endXp)
     {
-
         XpOverlay.SetActive(true);
         doneCounting = false;
         CancelInvoke();
@@ -55,16 +89,16 @@ public class XPController : MonoBehaviour
         {
             countBy = 1;
         }
-        int tempAttackXp = ((int)Mathf.Pow(startXp, .25f));
+        int tempXp = ((int)Mathf.Pow(startXp, .25f));
 
-        level.text = tempAttackXp.ToString();
+        level.text = tempXp.ToString();
         while (startXp <= endXp)
         {
             switch (type)
             {
                 case "Attack":
                     int combatLvl = ((int)Mathf.Pow(startXp, .25f));
-                    if (tempAttackXp != combatLvl)
+                    if (tempXp != combatLvl)
                     {
                         level.text = combatLvl.ToString();
                         StopCoroutine("LevelUp");
@@ -73,14 +107,34 @@ public class XPController : MonoBehaviour
                     barFillImage.fillAmount = (startXp - Mathf.Pow(combatLvl, 4)) / (Mathf.Pow((combatLvl + 1), 4) - Mathf.Pow(combatLvl, 4));
                     break;
                 case "Crafting":
-                    int craftingLvl = ((int)Mathf.Pow(playerVariables.craftingXp, .25f));
-                    level.text = craftingLvl.ToString();
-                    barFillImage.fillAmount = (playerVariables.craftingXp - Mathf.Pow(craftingLvl, 4)) / (Mathf.Pow((craftingLvl + 1), 4) - Mathf.Pow(craftingLvl, 4));
+                    int craftingLvl = ((int)Mathf.Pow(startXp, .25f));
+                    if (tempXp != craftingLvl)
+                    {
+                        level.text = craftingLvl.ToString();
+                        StopCoroutine("LevelUp");
+                        StartCoroutine("LevelUp");
+                    }
+                    barFillImage.fillAmount = (startXp - Mathf.Pow(craftingLvl, 4)) / (Mathf.Pow((craftingLvl + 1), 4) - Mathf.Pow(craftingLvl, 4));
+                    break;
+                case "Cooking":
+                    int cookingLvl = ((int)Mathf.Pow(startXp, .25f));
+                    if (tempXp != cookingLvl)
+                    {
+                        level.text = cookingLvl.ToString();
+                        StopCoroutine("LevelUp");
+                        StartCoroutine("LevelUp");
+                    }
+                    barFillImage.fillAmount = (startXp - Mathf.Pow(cookingLvl, 4)) / (Mathf.Pow((cookingLvl + 1), 4) - Mathf.Pow(cookingLvl, 4));
                     break;
                 case "Gathering":
-                    int gatheringLvl = ((int)Mathf.Pow(playerVariables.gatheringXp, .25f));
-                    level.text = gatheringLvl.ToString();
-                    barFillImage.fillAmount = (playerVariables.gatheringXp - Mathf.Pow(gatheringLvl, 4)) / (Mathf.Pow((gatheringLvl + 1), 4) - Mathf.Pow(gatheringLvl, 4));
+                    int gatheringLvl = ((int)Mathf.Pow(startXp, .25f));
+                    if (tempXp != gatheringLvl)
+                    {
+                        level.text = gatheringLvl.ToString();
+                        StopCoroutine("LevelUp");
+                        StartCoroutine("LevelUp");
+                    }
+                    barFillImage.fillAmount = (startXp - Mathf.Pow(gatheringLvl, 4)) / (Mathf.Pow((gatheringLvl + 1), 4) - Mathf.Pow(gatheringLvl, 4));
                     break;
                 case "Intelligence":
                     int intelligenceLvl = ((int)Mathf.Pow(playerVariables.cookingXp, .25f));
@@ -88,8 +142,8 @@ public class XPController : MonoBehaviour
                     barFillImage.fillAmount = (playerVariables.cookingXp - Mathf.Pow(intelligenceLvl, 4)) / (Mathf.Pow((intelligenceLvl + 1), 4) - Mathf.Pow(intelligenceLvl, 4));
                     break;
             }
-            yield return new WaitForSeconds(.1f);
-            tempAttackXp = ((int)Mathf.Pow(startXp, .25f));
+            yield return new WaitForSecondsRealtime(.1f);
+            tempXp = ((int)Mathf.Pow(startXp, .25f));
             int xpDif = endXp - startXp;
             if (startXp == endXp)
             {
@@ -121,42 +175,42 @@ public class XPController : MonoBehaviour
         TextMeshProUGUI levelText = levelUpText.GetComponent<TextMeshProUGUI>();
 
         levelText.text = "";
-        yield return new WaitForSeconds(.1f);
+        yield return new WaitForSecondsRealtime(.1f);
         levelText.text = "LEVEL UP!";
-        yield return new WaitForSeconds(.1f);
+        yield return new WaitForSecondsRealtime(.1f);
         levelText.text = "";
-        yield return new WaitForSeconds(.1f);
+        yield return new WaitForSecondsRealtime(.1f);
         levelText.text = "LEVEL UP!";
-        yield return new WaitForSeconds(.1f);
+        yield return new WaitForSecondsRealtime(.1f);
         levelText.text = "";
-        yield return new WaitForSeconds(.1f);
+        yield return new WaitForSecondsRealtime(.1f);
         levelText.text = "LEVEL UP!";
-        yield return new WaitForSeconds(.1f);
+        yield return new WaitForSecondsRealtime(.1f);
         levelText.text = "";
-        yield return new WaitForSeconds(.1f);
+        yield return new WaitForSecondsRealtime(.1f);
         levelText.text = "LEVEL UP!";
-        yield return new WaitForSeconds(.1f);
+        yield return new WaitForSecondsRealtime(.1f);
         levelText.text = "";
-        yield return new WaitForSeconds(.1f);
+        yield return new WaitForSecondsRealtime(.1f);
         levelText.text = "LEVEL UP!";
-        yield return new WaitForSeconds(.1f);
+        yield return new WaitForSecondsRealtime(.1f);
         levelText.text = "";
 
-        yield return new WaitForSeconds(.25f);
+        yield return new WaitForSecondsRealtime(.25f);
         levelText.text = "LEVEL UP!";
-        yield return new WaitForSeconds(.49f);
+        yield return new WaitForSecondsRealtime(.49f);
         levelText.text = "";
-        yield return new WaitForSeconds(.49f);
+        yield return new WaitForSecondsRealtime(.49f);
         levelText.text = "LEVEL UP!";
-        yield return new WaitForSeconds(.49f);
+        yield return new WaitForSecondsRealtime(.49f);
         levelText.text = "";
-        yield return new WaitForSeconds(.49f);
+        yield return new WaitForSecondsRealtime(.49f);
         levelText.text = "LEVEL UP!";
-        yield return new WaitForSeconds(.49f);
+        yield return new WaitForSecondsRealtime(.49f);
         levelText.text = "";
-        yield return new WaitForSeconds(.49f);
+        yield return new WaitForSecondsRealtime(.49f);
         levelText.text = "LEVEL UP!";
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSecondsRealtime(1f);
 
         isLeveling = false;
         if (doneCounting)
@@ -164,6 +218,44 @@ public class XPController : MonoBehaviour
             CloseXpOverlay();
         }
 
+    }
+
+    public IEnumerator SlideXpPopup()
+    {
+        float time = Time.unscaledTime;
+        while (Time.unscaledTime - time < 10f)
+        {
+         //   xpPopup.transform.Translate(Vector3.right * 500/(Mathf.Sqrt(xpAmount)) * Time.unscaledDeltaTime);
+            yield return new WaitForSecondsRealtime(.033f);
+        }
+        xpPopup.SetActive(false);
+    }
+
+    public IEnumerator RackupPoints()
+    {
+        int countBy = (int)Mathf.Sqrt(xpAmount) - 3;
+        if (countBy < 1)
+        {
+            countBy = 1;
+        }
+        audioSource.Play();
+        audioSource.pitch = 1;
+        float currentXp = 0;
+        while (currentXp < xpAmount && xpAmount != 0)
+        {
+            xpPopupText.text = "+" + currentXp.ToString() + "XP";
+            currentXp += countBy;
+            yield return new WaitForSecondsRealtime(.033f);
+        }
+        if (currentXp >= xpAmount)
+        {
+            audioSource.Stop();
+            audioSource.pitch = 1f;
+            audioSource.PlayOneShot(echoClip, 1f);
+            xpPopupText.text = "+" + xpAmount.ToString() + "XP";
+            xpAmount = 0;
+            yield break;
+        }
     }
 
     public void CloseXpOverlay()

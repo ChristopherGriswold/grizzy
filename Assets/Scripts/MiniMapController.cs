@@ -9,6 +9,21 @@ public class MiniMapController : MonoBehaviour
         transform.rotation = Quaternion.Euler(90f, 0f, 0f);
     }
 
+    public void EnableEnemyBlips()
+    {
+        LayerMask currentCullingMask = gameObject.GetComponent<Camera>().cullingMask;
+        LayerMask finalCullingMask = currentCullingMask | (1 << 24);
+        gameObject.GetComponent<Camera>().cullingMask = finalCullingMask;
+    }
+
+    private void Start()
+    {
+        if (transform.root.gameObject.GetComponent<DataHandler>().playerData.rewardsPurchased.Contains(1))
+        {
+            EnableEnemyBlips();
+        }
+    }
+
     public void MakeSquarePngFromOurVirtualThingy()
     {
         // capture the virtuCam and save it as a square PNG.

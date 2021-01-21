@@ -12,40 +12,53 @@ public class ChangeQuality : MonoBehaviour
 
     public int currentQualityLevel;
 
-    private void Start()
+    private void Awake()
     {
-        ChangeQualitySetting(2);
+        if (PlayerPrefs.HasKey("QualityLevel"))
+        {
+            QualitySettings.SetQualityLevel(PlayerPrefs.GetInt("QualityLevel"));
+        }
     }
 
-    public void CheckSettings()
+    private void OnEnable()
     {
-        lowButton.GetComponent<Image>().color = Color.white;
-        highButton.GetComponent<Image>().color = Color.white;
-        ultraButton.GetComponent<Image>().color = Color.white;
+        UpdateSettings(QualitySettings.GetQualityLevel());
+    }
 
-        currentQualityLevel = QualitySettings.GetQualityLevel();
-        switch (currentQualityLevel)
+    public void UpdateSettings(int lvl)
+    {
+
+        switch (lvl)
         {
             case 0:
                 {
                     lowButton.GetComponent<Image>().color = Color.green;
+                    highButton.GetComponent<Image>().color = Color.white;
+                    ultraButton.GetComponent<Image>().color = Color.white;
                     break;
                 }
             case 2:
                 {
                     highButton.GetComponent<Image>().color = Color.green;
+                    lowButton.GetComponent<Image>().color = Color.white;
+                    ultraButton.GetComponent<Image>().color = Color.white;
                     break;
                 }
             case 5:
                 {
                     ultraButton.GetComponent<Image>().color = Color.green;
+                    highButton.GetComponent<Image>().color = Color.white;
+                    lowButton.GetComponent<Image>().color = Color.white;
                     break;
                 }
         }
     }
+
+
     public void ChangeQualitySetting(int i)
     {
+        PlayerPrefs.SetInt("QualityLevel", i);
         QualitySettings.SetQualityLevel(i, true);
-        CheckSettings();
+        UpdateSettings(i);
     }
 }

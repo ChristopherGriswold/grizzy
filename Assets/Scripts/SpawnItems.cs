@@ -2,25 +2,36 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.AI;
-using UnityEngine.Networking;
 using UnityEngine.UI;
-using Photon.Pun;
+using UnityEngine.SceneManagement;
 
 public class SpawnItems : MonoBehaviour
 {
     public List<GameObject> animals = new List<GameObject>();
+    public List<GameObject> items = new List<GameObject>();
     public GameObject spawnCenter;
 
     private int currentObjects;
     public float ranger = 10.0f;
 
-    void Start()
+    private void Start()
     {
-        if (PhotonNetwork.IsMasterClient)
+        SpawnAll();
+        SpawnAllItems();
+    }
+
+    public void SpawnAllItems()
+    {
+        for (int i = 0; i < items.Count; i++)
         {
-            SpawnAll();
+            int instances = 10;
+            for (int j = 0; j < instances; j++)
+            {
+                SpawnOne(items[i]);
+            }
         }
     }
+
 
     public void SpawnAll()
     {
@@ -46,7 +57,7 @@ public class SpawnItems : MonoBehaviour
                 return true;
             }
         }
-        result = Vector3.zero;
+        result = center;
         return false;
     }
 
@@ -77,7 +88,15 @@ public class SpawnItems : MonoBehaviour
     {
         Vector3 spawnPoint;
         RandomPoint(spawnCenter.transform.position, ranger, out spawnPoint);
-        PhotonNetwork.InstantiateSceneObject(prefab.name, spawnPoint, Quaternion.identity, 0, null);
+        GameObject newObject = (GameObject)Instantiate(Resources.Load(prefab.name), spawnPoint, Quaternion.Euler(0,Random.Range(0,360),0));
+    }
+
+    public void SpawnOneItem(string itemName)
+    {
+        Vector3 spawnPoint;
+        RandomPoint(spawnCenter.transform.position, ranger, out spawnPoint);
+        GameObject newObject = (GameObject)Instantiate(Resources.Load(itemName), spawnPoint, Quaternion.Euler(0, Random.Range(0, 360), 0));
+        newObject.GetComponent<ItemHandler>().shouldExpire = false;
     }
 }
 

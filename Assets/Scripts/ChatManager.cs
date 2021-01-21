@@ -4,9 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 using TMPro;
-using Photon.Pun;
 
-public class ChatManager : MonoBehaviourPun
+public class ChatManager : MonoBehaviour
 {
 
     public int maxMessages = 25;
@@ -14,68 +13,122 @@ public class ChatManager : MonoBehaviourPun
     public GameObject chatBubblePrefab;
     public string playerName;
     public Vector3 playerPosition;
-    private GameObject chatPanel;
+    public GameObject chatPanel;
     private PlayerVariables playerVariables;
-    public TextMeshPro bubbleTextMesh;
+
+    public GameObject arrowPrefab; // FIXME THIS IS BOGUS!
 
 
     [SerializeField]
     List<GameObject> messageList = new List<GameObject>();
 
-    private void OnEnable()
+    private void Start()
     {
-        chatPanel = GameObject.Find("Content");
         playerName = PlayerPrefs.GetString("PlayerName");
         SendChatMessageGlobal(playerName + ": Joined the game");
         playerVariables = chatPanel.transform.root.GetComponent<PlayerVariables>();
-        playerVariables.SetBackpack();
     }
 
     public void SendChatMessage(string text)
     {
         if(text != "")
         {
-            if (photonView.IsMine)
+            if (messageList.Count >= maxMessages)
             {
-                if (messageList.Count >= maxMessages)
-                {
-                    Destroy(messageList[0].gameObject);
-                    messageList.Remove(messageList[0]);
-                }
-                GameObject chatMessage = Instantiate(chatMessagePrefab);
-                chatMessage.GetComponent<TextMeshProUGUI>().text = gameObject.GetComponent<PlayerVariables>().playerName + ": " + text;
-              //  chatPanel = GameObject.Find("Content").transform;
-                chatMessage.transform.SetParent(chatPanel.transform);
-                GetComponentInChildren<ConsolePanel>().StartDisplay();
-                messageList.Add(chatMessage);
+                Destroy(messageList[0].gameObject);
+                messageList.Remove(messageList[0]);
             }
+            Vector3 chatPanelPos = chatPanel.GetComponent<RectTransform>().localPosition;
+            chatPanelPos.y = 0;
+            chatPanel.GetComponent<RectTransform>().localPosition = chatPanelPos;
+            GameObject chatMessage = Instantiate(chatMessagePrefab, chatPanel.transform);
+            chatMessage.transform.localPosition = Vector3.zero;
+            chatMessage.transform.localRotation = Quaternion.identity;
+            chatMessage.GetComponent<TextMeshProUGUI>().text = gameObject.GetComponent<PlayerVariables>().playerName + ": " + text;
+            //  chatPanel = GameObject.Find("Content").transform;
+            GetComponentInChildren<ConsolePanel>().StartDisplay();
+            messageList.Add(chatMessage);
             playerName = gameObject.GetComponent<PlayerVariables>().playerName;
             playerPosition = gameObject.transform.position;
-            photonView.RPC("RpcSendChatMessage", RpcTarget.All, playerName + ": " + text, playerPosition);
+            RpcSendChatMessage(text, playerPosition);
         }
     }
 
     public void SendChatMessageGlobal(string text)
     {
-        if (photonView.IsMine)
-        {
-            GameObject chatMessage = Instantiate(chatMessagePrefab);
-            chatMessage.GetComponent<TextMeshProUGUI>().text = text;
+        Vector3 chatPanelPos = chatPanel.GetComponent<RectTransform>().localPosition;
+        chatPanelPos.y = 0;
+        chatPanel.GetComponent<RectTransform>().localPosition = chatPanelPos;
+        GameObject chatMessage = Instantiate(chatMessagePrefab, chatPanel.transform);
+        chatMessage.transform.localPosition = Vector3.zero;
+        chatMessage.transform.localRotation = Quaternion.identity;
+        chatMessage.GetComponent<TextMeshProUGUI>().text = text;
             chatMessage.GetComponent<TextMeshProUGUI>().color = Color.yellow;
         //    chatPanel = GameObject.Find("Content");
-            chatMessage.transform.SetParent(chatPanel.transform);
             GetComponentInChildren<ConsolePanel>().StartDisplay();
             messageList.Add(chatMessage);
-        }
-        photonView.RPC("RpcSendChatMessageGlobal", RpcTarget.All, text);
+        //    RpcSendChatMessageGlobal(text);
     }
 
-    [PunRPC]
     void RpcSendChatMessage(string text, Vector3 playerPos)
     {
-        if (!photonView.IsMine)
+        bool cheated = false;
+        if(text == "MoreMoney")
         {
-            if (Vector3.Distance(GameObject.Find("LocalPlayer").transform.position, playerPos) < 25)
+            GameObject.Find("Player").GetComponent<DataHandler>().playerData.cash += 2000;
+            text = "Cheat activated";
+            cheated = true;
+        }else if(text == "MoreHealth")
+        {
+            GameObject.Find("Player").GetComponentInChildren<HealthController>().ReplenishHealth(100);
+            text = "Cheat activated";
+            cheated = true;
+        }
+        else if (text == "MoreArrows")
+        {
+            GameObject arrow = Instantiate(arrowPrefab);
+            GameObject.Find("Player").GetComponent<PlayerReferences>().backpack.GetComponent<Backpack>().AddToBackpack(arrow);
+
+            arrow.GetComponent<ItemHandler>().SetAmount(100);
+            text = "Cheat activated";
+            cheated = true;
+        }
+        else if (text == "MoreXp")
+        {
+            GameObject.Find("Player").GetComponent<XPController>().GainXp("Attack", 5000);
+            text = "Cheat activated";
+            cheated = true;
+        }
+        else if (text == "Suicide")
+        {
+            GameObject.Find("Player").GetComponentInChildren<HealthController>().LoseHealth(100);
+            text = "Cheat activated";
+            cheated = true;
+        }
+       
+        if (messageList.Count >= maxMessages)
+        {
+            Destroy(messageList[0].gameObject);
+            messageList.Remove(messageList[0]);
+        }
+
+        if (cheated)
+        {
+            GameObject.Find("Player").GetComponent<PlayerData>().cheated = true;
+        }
+        GameObject chatMessage = Instantiate(chatMessagePrefab);
+        chatMessage.GetComponent<TextMeshProUGUI>().text = text;
+        chatMessage.GetComponent<TextMeshProUGUI>().color = Color.green;
+        chatPanel = GameObject.Find("Content");
+        chatMessage.transform.SetParent(chatPanel.transform);
+        GetComponentInChildren<ConsolePanel>().StartDisplay();
+        messageList.Add(chatMessage);
+
+
+
+
+        //      if (Vector3.Distance(GameObject.Find("Player").transform.position, playerPos) < 25)
+        if (false)
             {
                 if (text != "")
                 {
@@ -84,7 +137,7 @@ public class ChatManager : MonoBehaviourPun
                         Destroy(messageList[0].gameObject);
                         messageList.Remove(messageList[0]);
                     }
-                    GameObject chatMessage = Instantiate(chatMessagePrefab);
+             //       GameObject chatMessage = Instantiate(chatMessagePrefab);
                     chatMessage.GetComponent<TextMeshProUGUI>().text = text;
                     chatMessage.GetComponent<TextMeshProUGUI>().color = Color.green;
                     chatPanel = GameObject.Find("Content");
@@ -93,14 +146,10 @@ public class ChatManager : MonoBehaviourPun
                     messageList.Add(chatMessage);
                 }
             }
-        }
     }
 
-    [PunRPC]
     void RpcSendChatMessageGlobal(string text)
     {
-        if (!photonView.IsMine)
-        {
             if (messageList.Count >= maxMessages)
             {
                 Destroy(messageList[0].gameObject);
@@ -113,51 +162,26 @@ public class ChatManager : MonoBehaviourPun
             chatMessage.transform.SetParent(chatPanel.transform);
             GetComponentInChildren<ConsolePanel>().StartDisplay();
             messageList.Add(chatMessage);
-        }
-    }
-    public void ChangeChatBubbleText(string text)
-    {
-        if(text != "")
-        {
-            photonView.RPC("RpcChangeChatBubbleText", RpcTarget.All, text, photonView.ViewID);
-        }
     }
 
-    [PunRPC]
-    void RpcChangeChatBubbleText(string text, int viewId)
-    {
-        if (photonView.IsMine)
-        {
-            return;
-        }
-        PostBubbleText(text, viewId);
-    }
 
-    void PostBubbleText(string text, int viewId)
-    {
-        bubbleTextMesh =   PhotonView.Find(viewId).gameObject.GetComponentInChildren<TextMeshPro>();
-        bubbleTextMesh.text = text;
-        StopCoroutine("ClearBubbleText");
-        StartCoroutine("ClearBubbleText");
-    }
+
 
     IEnumerator ClearBubbleText()
     {
         yield return new WaitForSeconds(5f);
-        bubbleTextMesh.text = "";
     }
 
     public void LocalNotification(GameObject g)
     {
-        if (!photonView.IsMine)
-        {
-            return;
-        }
         if (messageList.Count >= maxMessages)
         {
             Destroy(messageList[0].gameObject);
             messageList.Remove(messageList[0]);
         }
+        Vector3 chatPanelPos = chatPanel.GetComponent<RectTransform>().localPosition;
+        chatPanelPos.y = 0;
+        chatPanel.GetComponent<RectTransform>().localPosition = chatPanelPos;
         GameObject chatMessage = Instantiate(chatMessagePrefab);
         chatMessage.GetComponent<TextMeshProUGUI>().text = "Picked up: " + g.name;
         chatMessage.GetComponent<TextMeshProUGUI>().color = Color.white;
@@ -169,14 +193,15 @@ public class ChatManager : MonoBehaviourPun
 
     public void LocalNotification(string s)
     {
-        if (!photonView.IsMine)
-        {
-            return;
-        }
-        GameObject chatMessage = Instantiate(chatMessagePrefab);
+        Vector3 chatPanelPos = chatPanel.GetComponent<RectTransform>().localPosition;
+        chatPanelPos.y = 0;
+        chatPanel.GetComponent<RectTransform>().localPosition = chatPanelPos;
+        GameObject chatMessage = Instantiate(chatMessagePrefab, chatPanel.transform);
+        chatMessage.transform.localPosition = Vector3.zero;
+        chatMessage.transform.localRotation = Quaternion.identity;
         chatMessage.GetComponent<TextMeshProUGUI>().text = s;
         chatMessage.GetComponent<TextMeshProUGUI>().color = Color.red;
-      //  chatPanel = GameObject.Find("Content").transform;
+        chatPanel = GameObject.Find("Content");
         chatMessage.transform.SetParent(chatPanel.transform);
         GetComponentInChildren<ConsolePanel>().StartDisplay();
         messageList.Add(chatMessage);
@@ -184,15 +209,16 @@ public class ChatManager : MonoBehaviourPun
     }
     public void LocalNotification(string s, Color color, bool dontClear)
     {
-        if (!photonView.IsMine)
-        {
-            return;
-        }
-        GameObject chatMessage = Instantiate(chatMessagePrefab);
+        Vector3 chatPanelPos = chatPanel.GetComponent<RectTransform>().localPosition;
+        chatPanelPos.y = 0;
+        chatPanel.GetComponent<RectTransform>().localPosition = chatPanelPos;
+        GameObject chatMessage = Instantiate(chatMessagePrefab, chatPanel.transform);
+        chatMessage.transform.localPosition = Vector3.zero;
+        chatMessage.transform.localRotation = Quaternion.identity;
         chatMessage.GetComponent<TextMeshProUGUI>().text = s;
         chatMessage.GetComponent<TextMeshProUGUI>().color = color;
       //  chatPanel = GameObject.Find("Content").transform;
-        chatMessage.transform.SetParent(chatPanel.transform);
+    //    chatMessage.transform.SetParent(chatPanel.transform);
         GetComponentInChildren<ConsolePanel>().StartDisplay();
         messageList.Add(chatMessage);
         if (!dontClear)

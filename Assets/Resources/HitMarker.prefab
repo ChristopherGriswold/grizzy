@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 33929401712703934}
   - component: {fileID: 222082515727391076}
   - component: {fileID: 114404238603413914}
-  - component: {fileID: 114037355293686016}
   - component: {fileID: 4819140686673837821}
   m_Layer: 2
   m_Name: HitMarker
@@ -225,28 +224,6 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   m_maskType: 0
---- !u!114 &114037355293686016
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1205130846171814}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 0
-  OwnershipTransfer: 0
-  ObservedComponents:
-  - {fileID: 0}
-  viewIdField: 0
-  InstantiationId: 1
-  isRuntimeInstantiated: 0
 --- !u!210 &4819140686673837821
 SortingGroup:
   m_ObjectHideFlags: 0

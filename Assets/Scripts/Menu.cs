@@ -21,6 +21,7 @@ public class Menu : MonoBehaviour {
 
     public void OpenMenu()
     {
+        Time.timeScale = 0;
         CancelInvoke("RestoreCollisions");
         aud.PlayOneShot(openBackpackSound);
         Physics.IgnoreLayerCollision(13, 14, true);
@@ -29,6 +30,7 @@ public class Menu : MonoBehaviour {
     }
     public void CloseMenu()
     {
+        Time.timeScale = 1;
         aud.PlayOneShot(closeBackpackSound);
         Invoke("RestoreCollisions", 1f);
         menuOpen = false;

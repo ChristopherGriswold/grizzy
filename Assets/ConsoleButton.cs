@@ -20,8 +20,13 @@ public class ConsoleButton : MonoBehaviour, IDragHandler, IEndDragHandler
 
     public void ClickedButton()
     {
+        
         if (!consolePanel.isOpen)
         {
+            Vector3 chatPanelPos = consoleRectTransform.localPosition;
+            chatPanelPos.y = 0;
+            consoleRectTransform.localPosition = chatPanelPos;
+
             consolePanel.StopAllCoroutines();
             consolePanel.leaveOpen = true;
             StartCoroutine(consolePanel.OpenConsole());

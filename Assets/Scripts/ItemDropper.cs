@@ -1,8 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
-using Photon.Realtime;
 
 public class ItemDropper : MonoBehaviour
 {
@@ -13,7 +11,7 @@ public class ItemDropper : MonoBehaviour
     {
         foreach (GameObject item in itemsToDrop)
         {
-            GameObject newItem = PhotonNetwork.Instantiate(item.name, this.gameObject.transform.position, this.gameObject.transform.rotation, 0, null);
+            GameObject newItem = (GameObject)Instantiate(Resources.Load(item.name), gameObject.transform.position, gameObject.transform.rotation);
         }
     }
 }

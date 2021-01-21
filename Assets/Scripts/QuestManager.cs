@@ -4,8 +4,6 @@ using UnityEngine;
 using System.Xml.Serialization;
 using System.IO;
 using UnityEngine.UI;
-using Photon.Realtime;
-using Photon.Pun;
 
 public class QuestManager : MonoBehaviour
 {
@@ -13,7 +11,6 @@ public class QuestManager : MonoBehaviour
     private void Awake()
     {
         ins = this;
-        StartCoroutine(LinkPlayerBackpack());
     }
 
     public DialogueManager dialogueManager;
@@ -23,7 +20,10 @@ public class QuestManager : MonoBehaviour
     private Backpack backpack;
     private ChatManager chatManager;
     private GameObject player;
+    private DataHandler dataHandler;
+    private bool dataLinked = false;
     private MiniQuestWWrapper wrappedMiniQuests;
+    private bool miniquestDataLoaded = false;
 
 
     public bool CheckConditions()
@@ -99,16 +99,16 @@ public class QuestManager : MonoBehaviour
         {
             for (int i = 0; i < miniQuests[miniQuestIndex].rewards.Count; i++)
             {
-                GameObject questReward = PhotonNetwork.Instantiate(miniQuests[miniQuestIndex].rewards[i], this.gameObject.transform.position, this.gameObject.transform.rotation, 0, null);
+                GameObject questReward = (GameObject)Instantiate(Resources.Load(miniQuests[miniQuestIndex].rewards[i]), gameObject.transform.position, gameObject.transform.rotation);
                 questReward.GetComponent<ItemHandler>().ReceiveItem(chatManager.gameObject);
-                chatManager.LocalNotification("Received: " + miniQuests[miniQuestIndex].rewards[i], Color.cyan, true);
+                chatManager.LocalNotification("Received: " + questReward.name, Color.cyan, true);
             }
         }
     }
 
     public void TakeMoney(int miniQuestIndex)
     {
-        player.GetComponent<PlayerVariables>().RemoveCash(50);
+        player.GetComponent<PlayerVariables>().RemoveCash(miniQuests[miniQuestIndex].costGold);
         chatManager.LocalNotification("Gold -" + miniQuests[miniQuestIndex].costGold, Color.red, true);
     }
 
@@ -131,8 +131,10 @@ public class QuestManager : MonoBehaviour
             if (id == miniQuests[i].id)
             {
                 miniQuests[i].completed = true;
-            //    RemoveQuestItems(i);
-            if(chatManager != null)
+                dataHandler.playerData.questsCompleted.Add(id);
+                dataHandler.SaveData();
+                //    RemoveQuestItems(i);
+                if (chatManager != null)
                 {
 
                     chatManager.LocalNotification("Quest Complete: " + miniQuests[i].name, Color.green, true);
@@ -142,9 +144,61 @@ public class QuestManager : MonoBehaviour
         }
     }
 
+    private IEnumerator WaitToStart()
+    {
+        player = GameObject.FindGameObjectWithTag("Player");
+        dataHandler = player.GetComponent<DataHandler>();
+        backpack = player.GetComponent<PlayerReferences>().backpack.GetComponent<Backpack>();
+        chatManager = player.GetComponent<ChatManager>();
+        while (!dataHandler.fullyLoaded)
+        {
+            yield return null;
+        }
+
+        Start2();
+    }
     private void Start()
     {
+        StartCoroutine(WaitToStart());
+    }
+
+    public void Start2()
+    {
         LoadMiniQuestData();
+        
+
+        if (!dataHandler.playerData.questsCompleted.Contains(1))
+        {
+            while (!miniquestDataLoaded)
+            {
+            }
+            StartMiniQuest(1);
+        }
+        else
+        {
+            miniQuests[1].completed = true;
+            Trigger trig = new Trigger();
+            trig.triggerType = "SetNodeDestinationId";
+            trig.actionId = 0;
+            trig.secondaryActionId = 1;
+            trig.thirdActionId = 1;
+            gameObject.GetComponent<DialogueManager>().ActivateTrigger(trig);
+        }
+        if (dataHandler.playerData.questsCompleted.Contains(0))
+        {
+            miniQuests[0].completed = true;
+            Trigger trig = new Trigger();
+
+            trig.triggerType = "ChangeEntryNode";
+            trig.actionId = 7;
+            gameObject.GetComponent<DialogueManager>().ActivateTrigger(trig);
+
+            trig.triggerType = "SetNodeDestinationId";
+            trig.actionId = 0;
+            trig.secondaryActionId = 7;
+            trig.thirdActionId = 0;
+            gameObject.GetComponent<DialogueManager>().ActivateTrigger(trig);
+        }
         //   SaveMiniQuestData();
     }
 
@@ -154,7 +208,7 @@ public class QuestManager : MonoBehaviour
         {
             try
             {
-                player = GameObject.Find("LocalPlayer");
+                player = GameObject.FindGameObjectWithTag("Player");
                 
                 if (player != null)
                 {
@@ -192,6 +246,7 @@ public class QuestManager : MonoBehaviour
      //   string jsonData = File.ReadAllText(Application.dataPath + "/StreamingAssets/Json/" + npcName + "_miniQuests.json");
         wrappedMiniQuests = JsonUtility.FromJson<MiniQuestWWrapper>(jsonData);
         miniQuests = wrappedMiniQuests.miniQuests;
+        miniquestDataLoaded = true;
     }
 }
 

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using System.Security.Cryptography;
 using UnityEngine.Networking;
 using System.Text;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class Login : MonoBehaviour 
 {
@@ -15,8 +15,20 @@ public class Login : MonoBehaviour
     public string password;
     public GameObject progressLabel;
     public Text progressText;
+    public Image loadingBar;
+    public string dateTimeOfSave;
+    public GameObject loginButton;
 
-    
+    private DataHandler dataHandler;
+    private PlayerData playerData;
+
+    private void Start()
+    {
+        dataHandler = gameObject.GetComponent<DataHandler>();
+        playerData = dataHandler.playerData;
+    }
+
+
     private string url = "http://www.iceybones.com/";
  
     public void SetUsername(string n)
@@ -29,28 +41,62 @@ public class Login : MonoBehaviour
         password = pw;
     }
  
-byte[] HashPassword(string password)
-{
-    PasswordHash hash = new PasswordHash(password);
+    byte[] HashPassword(string password)
+    {
+        PasswordHash hash = new PasswordHash(password);
         
-    byte[] hashBytes = hash.ToArray();
-    return hashBytes;
-}
+        byte[] hashBytes = hash.ToArray();
+        return hashBytes;
+    }
 
+    public static string Sha1Sum2(string str)
+    {
+        System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
+        byte[] bytes = encoding.GetBytes(str);
+        var sha = new System.Security.Cryptography.SHA1CryptoServiceProvider();
+        return System.BitConverter.ToString(sha.ComputeHash(bytes));
+    }
+
+
+    public IEnumerator LoadingBar()
+    {
+        while (loadingBar.fillAmount < 1f)
+        {
+            loadingBar.fillAmount += .01f;
+            yield return new WaitForEndOfFrame();
+        }
+
+      /*  while (loadingBar.fillAmount >= .5f)
+        {
+            loadingBar.gameObject.SetActive(false);
+            yield return new WaitForSeconds(0.5f);
+            loadingBar.gameObject.SetActive(true);
+            yield return new WaitForSeconds(0.5f);
+        }*/
+
+    }
 
     public void Authenticate()
     {
-        progressText.text = "Authenticating";
+        loginButton.SetActive(false);
+        StartCoroutine("LoadingBar");
+        
         StartCoroutine(TryAuthenticate());
     }
-public IEnumerator TryAuthenticate()
+    public IEnumerator TryAuthenticate()
     {
+        bool isAuthenticated = false;
+        progressText.text = "Authenticating";
+
         string customUrl = url + "Login.aspx";
 
         WWWForm form = new WWWForm();
 
+
+        passwordHash = Sha1Sum2(password);
+
         form.AddField("username", username);
-        form.AddField("password", password); ;
+        form.AddField("password", passwordHash);
 
         using (UnityWebRequest www = UnityWebRequest.Post(customUrl, form))
         {
@@ -59,8 +105,10 @@ public IEnumerator TryAuthenticate()
 
             if (www.isNetworkError)
             {
-                Debug.Log(www.error);
+                StopCoroutine(LoadingBar());
+                loadingBar.fillAmount = 0f;
                 progressText.text = www.error;
+                loginButton.SetActive(true);
             }
             else
             {
@@ -69,21 +117,58 @@ public IEnumerator TryAuthenticate()
                 {
                     sb.Append(dict.Key).Append(": \t[").Append(dict.Value).Append("]\n");
                 }
-
-                // Print Headers
-           //     Debug.Log(sb.ToString());
-
-                // Print Body
-          //     Debug.Log(www.downloadHandler.text);
-
-                if(www.downloadHandler.text == "True")
+                if (www.downloadHandler.text == "True")
                 {
-                    progressText.text = "Success";
-                    LaunchGame();
+                 //   StopCoroutine(LoadingBar());
+                 if(loadingBar.fillAmount < .25f)
+                    {
+                        loadingBar.fillAmount = 0.25f;
+                    }
+                    progressText.text = "Authentication Successful";
+                    playerData.playerName = username;
+                    yield return new WaitForSeconds(.1f);
+                    progressText.text = "Loading Player Data";
+                    dataHandler.CreateLocalUser(username);
+                    if (!dataHandler.LoadData())
+                    {
+                        progressText.text = "Failed To Load Player Data";
+                        StopCoroutine("LoadingBar");
+                        loadingBar.fillAmount = 0f;
+                        yield return new WaitForSeconds(2f);
+                        SceneManager.LoadScene(0);
+                    }
+                    else
+                    {
+                        isAuthenticated = true;
+                    }
+                    if(loadingBar.fillAmount < .5f && isAuthenticated)
+                    {
+                        loadingBar.fillAmount = .5f;
+                    }
+                    if (PlayerPrefs.GetInt("RememberPassword") == 1)
+                    {
+                        PlayerPrefs.SetString("Password", password);
+                    }
+                    else
+                    {
+                        PlayerPrefs.SetString("Password", "");
+                    }
+
+                    //    dataHandler.SaveData();
+
+                    //  dataHandler.SaveData();
+                    if (isAuthenticated)
+                    {
+                        LaunchGame();
+                    }
                 }
                 else
                 {
+                    StopCoroutine("LoadingBar");
+                    loadingBar.fillAmount = 0f;
+                    progressLabel.SetActive(true);
                     progressText.text = "Invalid Password";
+                    loginButton.SetActive(true);
                 }
             }
         }
